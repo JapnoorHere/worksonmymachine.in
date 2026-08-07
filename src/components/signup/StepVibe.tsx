@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { StepShell } from "./StepShell";
 import { VIBES } from "@/lib/content";
 import { useSound } from "@/components/providers/SoundProvider";
-import { spring, riseIn, stagger } from "@/lib/motion";
+import { spring, ease, riseIn, stagger } from "@/lib/motion";
 import { cn } from "@/lib/cn";
 
 export function StepVibe({
@@ -80,7 +80,7 @@ export function StepVibe({
             >
               <motion.span
                 animate={active ? { scale: [1, 1.35, 1], rotate: [0, -12, 0] } : { scale: 1 }}
-                transition={spring.bouncy}
+                transition={active ? { duration: 0.4, ease: ease.anticipate } : spring.bouncy}
                 className="mt-0.5 text-[21px] leading-none"
                 aria-hidden
               >
