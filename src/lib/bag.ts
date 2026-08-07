@@ -60,11 +60,30 @@ export function deal<T>(key: string, pool: readonly T[]): T {
   return item;
 }
 
-/** Deal `count` distinct items in one go. */
+/**
+ * Deal `count` distinct items in one go.
+ *
+ * `deal()` reshuffles the whole pool whenever its deck runs empty, and that
+ * reshuffle only avoids repeating the single card dealt right before it — not
+ * every card already handed out earlier in *this* batch. A batch that spans a
+ * reshuffle boundary (small pool, large count — 7 of 20 logos reshuffles
+ * inside of three calls) can otherwise repeat within itself, which shows up
+ * as a duplicate React key. Skipping and redrawing on a same-batch repeat
+ * fixes that; it costs an occasional wasted card from the deck, never a
+ * visible duplicate.
+ */
 export function dealMany<T>(key: string, pool: readonly T[], count: number): T[] {
   const n = Math.min(count, pool.length);
   const out: T[] = [];
-  for (let i = 0; i < n; i++) out.push(deal(key, pool));
+  const seen = new Set<T>();
+  let guard = n * 4; // pool.length >= n, so this should never actually bind
+
+  while (out.length < n && guard-- > 0) {
+    const item = deal(key, pool);
+    if (seen.has(item)) continue;
+    seen.add(item);
+    out.push(item);
+  }
   return out;
 }
 
