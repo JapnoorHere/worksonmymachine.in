@@ -16,6 +16,12 @@ import { riseIn, spring, stagger } from "@/lib/motion";
 import { cn } from "@/lib/cn";
 import { Squiggle } from "./Squiggle";
 import { KevinAside } from "@/components/gags/KevinAside";
+import { VibeMeter } from "./VibeMeter";
+import { LiveCodeGenerator } from "./LiveCodeGenerator";
+import { DistractionCounter } from "./DistractionCounter";
+import { PanicButton } from "./PanicButton";
+import { ScreenTimeSlider } from "./ScreenTimeSlider";
+import { VoidButton } from "./VoidButton";
 
 interface Profile {
   name: string;
@@ -26,7 +32,7 @@ interface Profile {
   joinedAt: string;
 }
 
-const TABS = ["Overview", "Achievements", "Insights"] as const;
+const TABS = ["Overview", "Live Ops", "Achievements", "Insights"] as const;
 type Tab = (typeof TABS)[number];
 
 export function Dashboard() {
@@ -36,11 +42,34 @@ export function Dashboard() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [tab, setTab] = useState<Tab>("Overview");
   const [mounted, setMounted] = useState(false);
+  const [session, setSession] = useState<{ id: string; name: string; email: string } | null>(null);
 
   useEffect(() => {
     setProfile(readLS<Profile | null>("profile", null));
     setMounted(true);
   }, []);
+
+  // The dashboard itself still reads the localStorage profile above for its
+  // personalization (unchanged) — this is purely to show a real sign-out
+  // control when a real session actually exists.
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then(async (res) => {
+        if (!res.ok) return;
+        const data = (await res.json()) as {
+          ok: boolean;
+          user?: { id: string; name: string; email: string };
+        };
+        if (data.ok && data.user) setSession(data.user);
+      })
+      .catch(() => {});
+  }, []);
+
+  const signOut = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    setSession(null);
+    play("click");
+  };
 
   /* Confetti, once, on arrival. Fired from two low corners rather than the
      centre so it reads as celebration rather than a screen wipe. */
@@ -122,6 +151,16 @@ export function Dashboard() {
             <span className="rounded-full bg-white/10 px-3 py-1.5 font-mono text-[11px]">
               seats: 1 of 1
             </span>
+            {mounted && session && (
+              <button
+                type="button"
+                onClick={signOut}
+                title={session.email}
+                className="cursor-pointer rounded-full bg-white/10 px-3 py-1.5 font-mono text-[11px] transition-colors hover:bg-white/20"
+              >
+                sign out
+              </button>
+            )}
           </div>
           <p className="mt-3 font-mono text-[10px] opacity-40">
             *forever is defined in section 14 of a document we have not drafted
@@ -230,6 +269,34 @@ export function Dashboard() {
                 used for personalization · personalization not implemented
               </p>
             </Card>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {tab === "Live Ops" && (
+        <motion.div
+          variants={stagger()}
+          initial="hidden"
+          animate="show"
+          className="grid gap-4 lg:grid-cols-3"
+        >
+          <motion.div variants={riseIn}>
+            <VibeMeter />
+          </motion.div>
+          <motion.div variants={riseIn}>
+            <DistractionCounter />
+          </motion.div>
+          <motion.div variants={riseIn}>
+            <PanicButton />
+          </motion.div>
+          <motion.div variants={riseIn} className="lg:col-span-2">
+            <LiveCodeGenerator />
+          </motion.div>
+          <motion.div variants={riseIn}>
+            <VoidButton />
+          </motion.div>
+          <motion.div variants={riseIn} className="lg:col-span-3">
+            <ScreenTimeSlider />
           </motion.div>
         </motion.div>
       )}

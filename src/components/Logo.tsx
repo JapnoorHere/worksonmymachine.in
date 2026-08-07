@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { Anxious } from "@/components/gags/AnxiousTooltip";
 
 /** The mark: a containment vessel with a flame that is objectively not contained. */
 export function LogoMark({ className }: { className?: string }) {
@@ -28,7 +29,9 @@ export function LogoMark({ className }: { className?: string }) {
 export function Logo({ className }: { className?: string }) {
   return (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
-      <LogoMark />
+      <Anxious>
+        <LogoMark />
+      </Anxious>
       <span className="flex flex-col leading-none">
         <span className="font-display text-[16.5px] font-bold tracking-tight">
           This Is Fine

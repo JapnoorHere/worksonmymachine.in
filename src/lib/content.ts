@@ -1352,6 +1352,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: "deep-scroll", name: "Completionist", emoji: "📜", desc: "Scrolled to the bottom of the landing page. There was nothing there.", secret: true },
   { id: "voter", name: "Democracy", emoji: "🗳️", desc: "Upvoted a pending submission. It changes review order and nothing else.", secret: true },
   { id: "rejected-many", name: "Persistent", emoji: "🧱", desc: "Had ten different names rejected in one sitting.", secret: true },
+  { id: "panic-button", name: "Boss Never Came", emoji: "🧯", desc: "Hit the panic button. There was no boss. There was never a boss.", secret: true },
+  { id: "desperate", name: "We Appreciate It", emoji: "🙏", desc: "Submitted a joke at maximum desperation.", secret: true },
 ];
 
 /* ========================================================================== */
@@ -1414,4 +1416,421 @@ export const CHANGELOG = [
       "Added the age field. It rejects all ages. This was the entire original idea.",
     ],
   },
+];
+
+/* ========================================================================== */
+/* ANXIOUS TOOLTIPS — 50+, dealt. UI elements with feelings about being used. */
+/* ========================================================================== */
+
+export const ANXIOUS_TOOLTIPS = [
+  "Please click me gently. It's been a long deploy.",
+  "Don't type anything weird in here. We've seen things.",
+  "I was drawn in MS Paint by an intern. He was proud of me.",
+  "This is my one job. Please don't make it weird.",
+  "I've been hovered on before. It's fine. I'm fine.",
+  "If you click me, we're both committing to something.",
+  "I don't know what happens next either.",
+  "Careful. I bruise easy and I remember everything.",
+  "I was A/B tested against a rectangle. The rectangle lost.",
+  "Someone in a meeting fought for my border-radius.",
+  "I contain multitudes and also just a click handler.",
+  "This icon is doing its best.",
+  "I've never been clicked at this hour before.",
+  "Go easy. I only had one code review.",
+  "I was supposed to be blue. Long story.",
+  "Whatever you're about to do, I support it nervously.",
+  "I have opinions about you and I am not sharing them.",
+  "This label took longer to write than to build.",
+  "I've been staring at your cursor for eleven seconds.",
+  "I promise I do something. I just don't know what, exactly.",
+  "Please don't double-click. I only have one job in me.",
+  "I was named 'button2_final' in the source. We don't discuss it.",
+  "You hover like someone who's been burned by a modal before.",
+  "I'm load-bearing. Emotionally, mostly.",
+  "Somebody QA'd me once. It went fine. Probably.",
+  "I get nervous around fast cursors.",
+  "This is the longest anyone's looked at me today.",
+  "I was going to say something. I've reconsidered.",
+  "I was built on a Friday. We don't talk about it.",
+  "Please don't tell the other elements I said this.",
+  "I've been hovered by 1 person today. It's you. Hi.",
+  "Whatever happens after this click isn't really up to me.",
+  "I was reviewed by exactly one person, and they were tired.",
+  "I've got a good feeling about this. I have no basis for that.",
+  "This tooltip exists because someone thought silence was worse.",
+  "I don't remember agreeing to have a personality.",
+  "Someone gave me a shadow. I didn't ask for a shadow.",
+  "I was supposed to say something useful. This is what happened instead.",
+  "I've seen your cursor circle back twice. We're both nervous now.",
+  "This is fine. I'm fine. Everything about this is fine.",
+  "I was cloned from a component that no longer exists.",
+  "Nobody has told me what I do. I've stopped asking.",
+  "If this breaks, it's not going to be because of me. Probably.",
+  "I have a tabIndex and a dream.",
+  "This element has read the accessibility guidelines. Some of them.",
+  "I get like this before every click. It passes.",
+  "I was placed here by someone who has since left the company.",
+  "You're allowed to just click it. I've been ready for a while.",
+  "I don't do anything special. I just wanted you to know that up front.",
+  "This has been the highlight of my day, and my day started nine seconds ago.",
+];
+
+/* ========================================================================== */
+/* SCREEN TIME SLIDER — an ordered ladder, keyed by hour, not shuffled         */
+/* ========================================================================== */
+
+export const SCREEN_TIME_REACTIONS: { at: number; text: string }[] = [
+  { at: 0, text: "Ambitious. We've never seen this." },
+  { at: 1, text: "Technically possible. Historically, no." },
+  { at: 2, text: "This is a lovely number. We don't believe it." },
+  { at: 3, text: "Getting closer to a number people actually hit." },
+  { at: 4, text: "This is where it gets heavy." },
+  { at: 5, text: "The slider felt that." },
+  { at: 6, text: "It's not you. It's the number." },
+  { at: 8, text: "The slider has stopped pretending this is fine." },
+  { at: 10, text: "We're not going to make this easy for you." },
+  { at: 12, text: "The slider would like a moment." },
+  { at: 14, text: "This is no longer a screen time target. This is a lifestyle." },
+  { at: 16, text: "The slider is tired of your unrealistic expectations." },
+];
+
+/* ========================================================================== */
+/* TERMS & CONDITIONS — a fixed document, walked top to bottom, not shuffled  */
+/* Section 4 is load-bearing: the quiz references it by number.               */
+/* ========================================================================== */
+
+export const TOS_SECTIONS: { n: number; heading: string; body: string }[] = [
+  { n: 1, heading: "Acceptance", body: "By continuing, you accept these terms in the same spirit you accept cookies: reluctantly, and without reading them." },
+  { n: 2, heading: "Definitions", body: "“We” means the company. “You” means whoever clicked. “Reasonable” does not appear again in this document." },
+  { n: 3, heading: "Eligibility", body: "You must be a real person, or something that types like one." },
+  { n: 4, heading: "Soul & Related Assets", body: "Paragraph 1: continued use of the Service constitutes a non-exclusive, revocable-by-us-only license to your soul, effective immediately upon scrolling past this sentence. Paragraph 2: your soul remains yours in name only; we retain the right to reference it in future marketing materials." },
+  { n: 5, heading: "Firstborn & Dependents", body: "Any firstborn children are considered “stretch goals” and not contractually binding, this time." },
+  { n: 6, heading: "Wi-Fi Password Sharing", body: "You agree to share your Wi-Fi password with any device we later invent that needs it." },
+  { n: 7, heading: "NFTs You're Embarrassed About", body: "You warrant that you own zero (0) NFTs. If this warranty is false, you agree not to bring it up." },
+  { n: 8, heading: "Data Collection", body: "We collect everything technically possible, and several things that are not." },
+  { n: 9, heading: "Data Usage", body: "Your data will be used to train a model that resents you specifically." },
+  { n: 10, heading: "Third Parties", body: "We may share your information with partners, none of whom you have met, several of whom are also us." },
+  { n: 11, heading: "Cookies", body: "See our separate, much angrier, Cookie Policy." },
+  { n: 12, heading: "Intellectual Property", body: "Anything you type becomes ours. Anything we type was already ours." },
+  { n: 13, heading: "User Conduct", body: "You agree not to be reasonable about any of this in a public forum." },
+  { n: 14, heading: "Termination", body: "We may terminate your account for any reason, no reason, or a reason we make up after the fact." },
+  { n: 15, heading: "Termination by You", body: "You may also terminate. We will not notice." },
+  { n: 16, heading: "Warranties", body: "The Service is provided “as is”, which is a legal term meaning “we know”." },
+  { n: 17, heading: "Limitation of Liability", body: "Our liability is limited to the amount you paid us, which is nothing, so: nothing." },
+  { n: 18, heading: "Indemnification", body: "You agree to defend us in a dispute you were not consulted about." },
+  { n: 19, heading: "Dispute Resolution", body: "Disputes will be resolved via arbitration, by an arbitrator we selected, in a building we own." },
+  { n: 20, heading: "Governing Law", body: "These terms are governed by the laws of a jurisdiction we have not disclosed." },
+  { n: 21, heading: "Force Majeure", body: "We are not responsible for acts of god, weather, or Kevin." },
+  { n: 22, heading: "Modifications", body: "We may change these terms at any time, retroactively, and will consider that notice." },
+  { n: 23, heading: "Assignment", body: "We may assign this agreement to any entity, including one that does not yet exist." },
+  { n: 24, heading: "Severability", body: "If one clause is unenforceable, the rest remain, out of spite." },
+  { n: 25, heading: "Entire Agreement", body: "This is the entire agreement. There is a second document. It supersedes this one. We won't say where it is." },
+  { n: 26, heading: "Contact", body: "Questions may be directed to Kevin. Kevin is typing." },
+];
+
+/** Dealt on every quiz open, so re-checking the box doesn't repeat the question. */
+export const TOS_QUIZ_QUESTIONS: { q: string; options: string[] }[] = [
+  { q: "What did Section 4, Paragraph 2 state about your soul ownership?", options: ["It remains yours in name only", "It was never really in question", "It's complicated", "We'd rather not say"] },
+  { q: "According to Section 5, what happens to any firstborn children?", options: ["They become stretch goals", "Nothing, this time", "It depends on the quarter", "Please stop asking about this"] },
+  { q: "Per Section 6, what are you required to share with future devices?", options: ["Your Wi-Fi password", "Your patience", "Both, honestly", "We forget"] },
+  { q: "What did Section 17 say about our liability?", options: ["It is limited to what you paid", "It does not exist", "It's a feeling, not a number", "We covered this already"] },
+  { q: "Per Section 21, who is Force Majeure not responsible for?", options: ["Kevin", "The weather", "Us, mostly", "All of the above, allegedly"] },
+  { q: "What does Section 12 say happens to anything you type?", options: ["It becomes ours", "It already was", "Both, somehow", "We're not proud of this one"] },
+  { q: "Section 19 — where is arbitration conducted?", options: ["A building we own", "A building we lease", "Somewhere. We're not saying.", "The comments section"] },
+  { q: "What did Section 25 say the second document contains?", options: ["Everything this one doesn't", "We won't say where it is", "It supersedes this one", "You don't want to know"] },
+  { q: "Per Section 9, what is your data used to train?", options: ["A model that resents you specifically", "A model that resents everyone equally", "Kevin", "We plead the fifth"] },
+  { q: "According to Section 14, on what basis may we terminate your account?", options: ["Any reason", "No reason", "A reason we invent later", "Yes"] },
+  { q: "Section 7 — what must you warrant about NFTs?", options: ["That you own zero", "That you're embarrassed regardless", "Both", "We already know the answer"] },
+  { q: "What does Section 16 say the Service is provided as?", options: ["“As is”", "“As is, unfortunately”", "We know what it means", "All of the above"] },
+  { q: "Per Section 22, when can these terms change?", options: ["At any time", "Retroactively", "Both, and that counts as notice", "It already changed while you read this"] },
+  { q: "Section 26 — who handles contact questions?", options: ["Kevin", "Kevin, who is typing", "Someone. Eventually.", "You've met him"] },
+  { q: "What does Section 3 require you to be?", options: ["A real person", "Something that types like one", "Either, we're not checking", "This one's a trick question"] },
+  { q: "Per Section 8, how much data do we collect?", options: ["Everything technically possible", "Several things that aren't", "Both", "More than that, probably"] },
+  { q: "Section 18 — what do you agree to defend us in?", options: ["A dispute you weren't consulted on", "Multiple disputes", "This exact quiz", "We'd rather not elaborate"] },
+  { q: "According to Section 11, what governs cookies?", options: ["A separate, angrier policy", "This one, technically", "Whichever one you didn't read", "The banner knows"] },
+  { q: "Section 23 — who can we assign this agreement to?", options: ["Any entity", "An entity that doesn't exist yet", "Both, eventually", "We already have"] },
+  { q: "What did Section 1 say you accept these terms in the spirit of?", options: ["Accepting cookies", "Reluctance", "Not reading them", "All three, simultaneously"] },
+];
+
+/* ========================================================================== */
+/* LIVE CODE GENERATOR — 50+, dealt. Nonsense pseudocode, always deploying.    */
+/* ========================================================================== */
+
+export const LIVE_CODE_LINES = [
+  "import magic from './reality';",
+  "await forgiveness.request();",
+  "const vibe = Math.random() > 0 ? 'fine' : 'also fine';",
+  "git commit -m \"final_final_v3_ACTUAL\"",
+  "function doEverything() { /* TODO: everything */ }",
+  "deploy(prod, { confidence: 'theoretical' });",
+  "try { ship(); } catch { alsoShip(); }",
+  "const truth = process.env.TRUTH ?? 'undefined';",
+  "await sleep(quarter);",
+  "if (bug) { rename(bug, 'feature'); }",
+  "export default function() { return; /* fine */ }",
+  "const rollback = () => rollback();",
+  "// this works, do not ask how",
+  "class Kevin extends Support { isTyping = true; }",
+  "const scope = creep(scope);",
+  "delete node_modules; delete node_modules;",
+  "console.log('probably fine');",
+  "npm install --save-optimism",
+  "const meeting = await scheduleMeeting({ about: 'scheduling' });",
+  "throw new Hope();",
+  "if (Math.random() < 1) { proceed(); }",
+  "const backlog = backlog.concat(backlog);",
+  "await align(stakeholders); // still pending",
+  "return synergy ?? null;",
+  "for (let i = 0; i < Infinity; i++) { standup(); }",
+  "const cache = new Map(); cache.set('trust', 0);",
+  "// reviewed by nobody, approved by everyone",
+  "async function ship() { return new Promise(() => {}); }",
+  "let momentum = 0; momentum++; momentum--;",
+  "export const isDone = () => false;",
+  "const migration = reverse(reverse(migration));",
+  "process.on('exit', () => console.log('we tried'));",
+  "const roadmap = new Image('horse.png');",
+  "if (onFire) { logCalmly(); }",
+  "const password = prompt('trust us');",
+  "await retry(retry(retry(action)));",
+  "// merged to main, told no one",
+  "const estimate = actualTime * Infinity;",
+  "function fixBug() { return hideBug(); }",
+  "const consensus = vote([true]);",
+  "git push --force-with-lease-of-life",
+  "const dashboard = new Widget(4).slice(0, 3);",
+  "await Promise.race([hope, deadline]);",
+  "const feelings = JSON.stringify(undefined);",
+  "if (!works) { works = true; }",
+  "export function reticulateSplines() { /* again */ }",
+  "const trust = Math.max(0, trust - 1);",
+  "let kevin = setInterval(typing, Infinity);",
+  "// deployed to production. again.",
+  "return 'it works on my machine';",
+];
+
+export const DEPLOY_BANNER_LINES = [
+  "Deployed to Production",
+  "Deployed to Production (again)",
+  "Deployed to Production, allegedly",
+  "Deployed to Production. No tests were harmed.",
+  "Deployed to Production at 4:58 PM on a Friday",
+  "Deployed to Production. Rolling back in 3… 2…",
+  "Deployed to Production, confidence: theoretical",
+  "Deployed to Production. Kevin approved it.",
+  "Deployed to Production. Nobody reviewed it.",
+  "Deployed to Production, skipping CI",
+  "Deployed to Production. It's fine. Probably.",
+  "Deployed to Production, twice, by accident",
+  "Deployed to Production. This is the real one.",
+  "Deployed to Production. So was the last one.",
+  "Deployed to Production. Champagne on standby.",
+  "Deployed to Production. Rolling forward instead.",
+];
+
+/* ========================================================================== */
+/* DISTRACTION COUNTER — an ordered ladder, keyed by tab-switch count          */
+/* ========================================================================== */
+
+export const DISTRACTION_GUILT: { at: number; text: string }[] = [
+  { at: 1, text: "Tab switch #1. We noticed." },
+  { at: 2, text: "Tab switch #2. Everything's still here." },
+  { at: 3, text: "Tab switch #3. This is between you and the tab." },
+  { at: 4, text: "Tab switch #4… your code is missing you." },
+  { at: 5, text: "Tab switch #5. We're not counting. We are counting." },
+  { at: 6, text: "Tab switch #6. The dashboard remembers." },
+  { at: 8, text: "Tab switch #8. Statistically, you're not coming back this time." },
+  { at: 10, text: "Tab switch #10. Ten. We're impressed and concerned." },
+  { at: 13, text: "Tab switch #13. Unlucky, and also accurate." },
+  { at: 16, text: "Tab switch #16. At this point it's a rhythm." },
+  { at: 20, text: "Tab switch #20. We've stopped judging. We've started logging." },
+  { at: 25, text: "Tab switch #25. This is now a lifestyle, not a lapse." },
+  { at: 30, text: "Tab switch #30. The guilt meter has nothing left to give." },
+  { at: 40, text: "Tab switch #40. We're proud of you for coming back at all." },
+];
+
+/* ========================================================================== */
+/* VIBE METER — bucketed by cursor speed, each bucket dealt for variety        */
+/* ========================================================================== */
+
+export const VIBE_METER_LEVELS: { label: string; notes: string[] }[] = [
+  {
+    label: "Flatlined",
+    notes: [
+      "The cursor has not moved. We're checking your pulse.",
+      "This qualifies as “away” in most systems.",
+      "Stillness. Bold choice.",
+      "We've logged this as “thinking” out of kindness.",
+    ],
+  },
+  {
+    label: "Procrastinating",
+    notes: [
+      "Deliberate, or stuck. Hard to say.",
+      "This is the pace of someone rereading an email before sending it.",
+      "Slow and, statistically, not steady.",
+      "You have the energy of a browser tab someone forgot about.",
+    ],
+  },
+  {
+    label: "Idling",
+    notes: [
+      "Present, technically.",
+      "Ambient movement. No commitment implied.",
+      "This is what “available” looks like on a graph.",
+      "We wouldn't call this working, exactly.",
+    ],
+  },
+  {
+    label: "Working",
+    notes: [
+      "This looks like actual productivity. Suspicious.",
+      "Purposeful. We're choosing to believe it.",
+      "Solidly in the “getting things done” band.",
+      "This is the pace of someone who has a plan.",
+    ],
+  },
+  {
+    label: "Focused",
+    notes: [
+      "Locked in. We respect it.",
+      "This is what deadlines do to a cursor.",
+      "Efficient. Slightly alarming.",
+      "You are moving like something is due.",
+    ],
+  },
+  {
+    label: "Panicking",
+    notes: [
+      "This is the cursor equivalent of shouting.",
+      "Fast. Erratic. Familiar.",
+      "We've seen this pattern before a deploy.",
+      "This reads as “the meeting is in two minutes”.",
+    ],
+  },
+  {
+    label: "Full Meltdown",
+    notes: [
+      "This is not vibes anymore, this is a cry for help.",
+      "We're going to go ahead and alert someone.",
+      "The cursor is now faster than the thing it's chasing.",
+      "Please, for your own sake, close a tab.",
+    ],
+  },
+];
+
+/* ========================================================================== */
+/* PANIC BUTTON — 40+ fake terminal lines, dealt in sequence when triggered    */
+/* ========================================================================== */
+
+export const PANIC_TERMINAL_LINES = [
+  "Compiling dependencies... done",
+  "Running test suite (247 passed, 0 run)",
+  "Optimizing bundle size... -0.0%",
+  "Connecting to production database",
+  "Connection established (probably)",
+  "Applying migration 0042_final_v2",
+  "Rolling back migration 0042_final_v2",
+  "Reapplying migration 0042_final_v3",
+  "Cache warmed",
+  "Cache invalidated",
+  "Cache warmed again, out of spite",
+  "Restarting worker pool",
+  "Worker pool restarted (1 of 4 responding)",
+  "Health check: green",
+  "Health check: green, unverified",
+  "Provisioning staging environment",
+  "Staging environment indistinguishable from production",
+  "Rebuilding search index",
+  "Search index rebuilt, results unchanged",
+  "Purging CDN edge cache",
+  "CDN cache purge queued behind 400 others",
+  "Scaling instances: 2 -> 8",
+  "Scaling instances: 8 -> 2, nobody asked",
+  "Sync complete: 0 conflicts, 4 concerns",
+  "Encrypting at rest",
+  "Decrypting to check it worked",
+  "Deploying hotfix for the hotfix",
+  "Awaiting stakeholder sign-off",
+  "Stakeholder sign-off simulated",
+  "Log rotation complete",
+  "Logs rotated into a void",
+  "Checking certificate expiry: fine, for now",
+  "Certificate renewed, expired immediately",
+  "Queue draining: 14,208 jobs remaining",
+  "Queue draining: 14,209 jobs remaining",
+  "Background job failed silently, as designed",
+  "Alert fired. Alert acknowledged. Alert ignored.",
+  "Everything is nominal. This is the concerning part.",
+  "No incidents to report. Suspicious.",
+  "End of log. Nothing to see here. Boss is definitely not coming.",
+];
+
+/* ========================================================================== */
+/* FAKE SUPPORT PING — a small dealt pool, one automated nudge per session     */
+/* ========================================================================== */
+
+export const SUPPORT_PING_LINES = [
+  "Hey — noticed you've been on this page a while. Need help typing your name?",
+  "Still there? We're standing by, decoratively.",
+  "Quick question: do you need help, or are you just looking?",
+  "We noticed you scrolled. That usually means something.",
+  "Most visitors have a question by now. Do you?",
+  "This is usually the part where someone asks about pricing.",
+  "We're here if you need anything. We are, technically, always here.",
+  "You've been idle for a bit. So have we, but differently.",
+  "A lot of people type something right about now.",
+  "Go ahead. Say something. See what happens.",
+];
+
+export const SUPPORT_PING_REPLY = "I'm just a picture of a chat box. I can't actually read.";
+
+/* ========================================================================== */
+/* DESPERATION SLIDER — an ordered ladder, keyed by desperation percentage     */
+/* ========================================================================== */
+
+/* ========================================================================== */
+/* CONTINUE ANYWAY — fires on Step 1's Continue despite every "rejection"     */
+/* ========================================================================== */
+
+export const CONTINUE_ANYWAY_LINES = [
+  "None of that resolved. We're letting you through regardless.",
+  "Every one of those was wrong. Continuing anyway.",
+  "We didn't fix anything. We just stopped checking.",
+  "Technically none of this passed. Proceeding.",
+  "The validation failed. The button did not care.",
+  "We reviewed your answers. We've decided not to act on that.",
+  "Nothing here is approved. You are, somehow.",
+  "This should not work. It's working.",
+  "We're waiving all of that, just this once, again, as always.",
+  "Rejected in spirit. Approved in practice.",
+];
+
+/* ========================================================================== */
+/* EMAIL TAKEN — real, but in-voice. Email is the one field that's actually   */
+/* checked against a real account.                                            */
+/* ========================================================================== */
+
+export const EMAIL_TAKEN_LINES = [
+  "That address already has an account here.",
+  "We already know this one.",
+  "Already yours, or someone convincingly pretending to be you.",
+  "That email is spoken for, and it wasn't by us.",
+  "There's already a person behind that address. Possibly you.",
+  "Taken. Unlike the other fields, this one means it.",
+  "That one's real, and it's already registered.",
+  "We checked. Actually checked, this time. It's in use.",
+];
+
+export const DESPERATION_LINES: { at: number; text: string }[] = [
+  { at: 0, text: "We'll wait." },
+  { at: 10, text: "No rush." },
+  { at: 25, text: "Whenever you're ready." },
+  { at: 40, text: "Still no rush. We mean it less." },
+  { at: 55, text: "We could really use this one." },
+  { at: 70, text: "This would really help us out." },
+  { at: 80, text: "Please." },
+  { at: 90, text: "We are begging, technically." },
+  { at: 97, text: "This is the whole business model." },
+  { at: 100, text: "Fine. Take it. It's yours." },
 ];

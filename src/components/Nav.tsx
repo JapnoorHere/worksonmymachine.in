@@ -76,6 +76,12 @@ export function Nav() {
             <SoundToggle />
           </div>
           <ThemeToggle compact />
+          <Link
+            href="/signup?mode=login"
+            className="hidden rounded-lg px-2 py-1.5 text-[13px] font-medium text-ink-soft transition-colors hover:text-ink sm:block"
+          >
+            Log in
+          </Link>
           <Link href="/signup" className="hidden rounded-[10px] sm:block">
             <Button size="sm">Get started</Button>
           </Link>

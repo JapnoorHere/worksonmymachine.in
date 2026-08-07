@@ -4,11 +4,13 @@ import { Pricing } from "@/components/landing/Pricing";
 import { Testimonials } from "@/components/landing/Testimonials";
 import { DailyBoard } from "@/components/landing/DailyBoard";
 import { ScrollSentinel } from "@/components/gags/ScrollSentinel";
+import { FakeSupportPing } from "@/components/gags/FakeSupportPing";
 import { Container, Eyebrow } from "@/components/ui/Primitives";
 
 export default function HomePage() {
   return (
     <>
+      <FakeSupportPing />
       <Hero />
 
       <section id="status" className="scroll-mt-24 py-8">

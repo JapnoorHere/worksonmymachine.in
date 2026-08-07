@@ -70,6 +70,7 @@ These are not style preferences. Breaking any of them breaks the project.
 | **N6** | **Nothing winks.** No "lol", no "just kidding", no self-aware aside. One deliberate exception (§7.4). | The premise dies the instant the site admits it's joking. |
 | **N7** | **Never punch at identity.** Target software, companies, corporate process, or relatable minor failures. | Non-negotiable regardless of how funny the line is. |
 | **N8** | **Never run `next build` into `.next` while `next dev` is running.** | See §14. Produces a cascade of misleading errors. |
+| **N9** | **`AUTH_SECRET` fail-closed in production.** Unset means every signup/login is refused, never a default. | Real passwords are hashed and stored behind this. See §9. |
 
 ---
 
@@ -112,7 +113,10 @@ only deliberately.
   immediately at any stage. Punishing someone who complied is a meaner,
   different joke.
 - **Never trap.** Signup's continue button gates on non-emptiness only, because
-  every field is permanently "invalid."
+  every field is permanently "invalid" — **except email**, which is real (see
+  §9). It gates on genuine format + availability, checked live, because it's
+  the one field backing an actual account. It's never a surprise sprung at
+  the end: the field shows its real status as you type.
 
 ---
 
@@ -215,18 +219,23 @@ src/
 │       ├── content/       GET approved community pools
 │       ├── submissions/   POST submit · GET pending · vote/
 │       ├── admin/         login/ · submissions/ (approve, reject, edit)
+│       ├── auth/          check-email/ · signup/ · login/ · logout/ · me/
 │       └── hall/          GET contributor stats
 │
 ├── components/
 │   ├── providers/         Theme · Sound · Toast · Achievement · Daily
 │   ├── ui/                Button · Field · Card · Badge · Container
 │   ├── landing/           Hero · DodgingCTA · LiveCounter · AppMock · …
-│   ├── signup/            SignupFlow + Step* components
-│   ├── dashboard/         Dashboard · Squiggle
-│   ├── contribute/        ContributeForm · PreviewSurface · PendingBoard
+│   ├── signup/            SignupFlow + Step* components + LoginPane
+│   ├── dashboard/         Dashboard · Squiggle · VibeMeter · LiveCodeGenerator ·
+│   │                      DistractionCounter · PanicButton · ScreenTimeSlider ·
+│   │                      VoidButton
+│   ├── contribute/        ContributeForm · PreviewSurface · PendingBoard ·
+│   │                      DesperationSubmit
 │   ├── admin/             AdminQueue
 │   ├── hall/              HallOfCringe
-│   └── gags/              CookieBanner · ChatWidget · KevinAside · …
+│   └── gags/              CookieBanner · ChatWidget · KevinAside ·
+│                          AnxiousTooltip · TermsQuizModal · FakeSupportPing · …
 │
 └── lib/
     ├── seed.ts            Date-seeded PRNG (xmur3 + mulberry32)
@@ -237,12 +246,14 @@ src/
     ├── rejections.ts      The validation that never validates
     ├── sanitize.ts        Contributor input hygiene
     ├── submissions.ts     Repository: Mongo, or memory if no Mongo
-    ├── adminAuth.ts       HMAC session handling
+    ├── users.ts           Repository: Mongo, or memory if no Mongo (real accounts)
+    ├── adminAuth.ts       HMAC session handling (admin)
+    ├── auth.ts            HMAC session handling (real users) + PBKDF2 hashing
     ├── ratelimit.ts       In-memory speed bump
     ├── db.ts              Cached Mongoose connection
     ├── motion.ts          Shared spring vocabulary
     ├── storage.ts         localStorage that never throws
-    └── models/            Mongoose schemas
+    └── models/            Mongoose schemas (Submission, User)
 ```
 
 ### Provider order (matters)
@@ -365,6 +376,12 @@ Side routes: /contribute → /admin → /hall-of-cringe · /changelog · 404
 | **Pricing** | Three tiers, identical features. Annual saves 0% and says so. |
 | **Testimonials** | 6 of 50 dealt per visit. Logos rotate independently: *"none of these are real · neither is the trust."* |
 | **Bottom sentinel** | Awards *Completionist*, admits there's nothing there. |
+| **Fake support ping** | An automated "need help?" bubble, distinct from Kevin, appears once ever at the 10s mark, top-right. Typing back gets exactly one reply: *"I'm just a picture of a chat box. I can't actually read."* |
+
+Several interactive elements site-wide (the logo, the sound toggle, form fields)
+carry a dealt caption on hover/focus — 50+ lines of a UI component quietly
+having feelings about being used (`ANXIOUS_TOOLTIPS`, `components/gags/AnxiousTooltip.tsx`).
+Decorative and `aria-hidden`; the wrapped control's own accessible name is untouched.
 
 ### 7.2 Signup — the structural joke
 
@@ -375,14 +392,38 @@ The animation is load-bearing: an instant re-render reads as a bug, a segment
 that visibly *arrives* reads as a decision. Processing sits **outside** the
 counted steps so the bar can honestly hit 100% before the flow continues anyway.
 
-**Step 1 — every field rejects you.** Two rules make this land:
+**Step 1 — every field rejects you. Except one.** Two rules make the fake
+rejections land:
 
 1. The message reacts to what you typed (digits → a line about digits, ALL CAPS
    → a line about volume, `admin` → *"Nice try."*).
 2. The same input always gives the same message, because it's seeded by the
    input itself. Reshuffling per keystroke would expose the randomizer.
 
-Password meter climbs honestly; commentary stays disappointed the whole way.
+Name and age stay exactly this fake — they gate Continue on non-emptiness
+only. **Email is real** (`api/auth/check-email`): format-checked and checked
+live against actual registered accounts, debounced ~450ms, reusing the same
+checking-spinner UX the name field already had. It's the one thing on this
+step backing a real, created-on-submit account, so it's the one thing that
+has to genuinely pass. Password meter climbs honestly; commentary stays
+disappointed the whole way — but a small, separate, honest line underneath
+states the real minimum (6 characters), since that part of the password
+field is no longer a bit either.
+
+Hitting Continue — with every fake field still showing a "rejection" —
+fires a toast dealt from `CONTINUE_ANYWAY_LINES` (10 entries): the site
+telling you, straight-faced, that it's letting you through regardless of
+its own verdicts.
+
+Every text field on this step also runs a tiny dramatic soundboard when sound
+is on: focusing plays a low suspense chord, each keystroke plays a toy
+typewriter peck, Backspace plays a toilet flush (`SoundProvider` voices
+`suspense` / `key` / `flush`). Below the password field, a "Terms &
+Conditions" checkbox opens a modal that auto-scrolls a 26-section fake legal
+document at warp speed (skipped under reduced motion), then hands over a pop
+quiz about a clause you couldn't have read — every answer gets *"Incorrect,
+but we'll accept it anyway."* None of this gates Continue; the checkbox is a
+pure bit, not an obstacle (N6).
 
 **Step 2 — verification.** Nothing was sent, any six digits work. The comedy is
 the fake validation walking six beats to "Approving anyway."
@@ -394,7 +435,20 @@ excess and the card flinches. 17 escalating reactions. Three determined shoves
 to 100 and it gives up: *"fine. it's yours. we've stopped resisting."*
 
 **Processing.** 6–9 lines dealt from 75. Progress bar deliberately dishonest —
-sprints to 80%, stalls, finishes in a rush.
+sprints to 80%, stalls, finishes in a rush. Underneath the theater, this step
+now does one real thing: it fires `POST /api/auth/signup` the moment it
+mounts, in parallel with the fake beats. Reaching the dashboard requires
+*both* the animation and the real request to finish — a real failure (a
+duplicate-email race is the realistic one; the live check on Step 1 already
+caught the common case) skips straight to an in-voice error and drops back to
+Step 1, never a dead end. See §9 for what "real" means here.
+
+A signed-up account can come back by switching the segmented control at the
+top of `/signup` from "Create account" to "Log in" (`?mode=login` deep-links
+straight into it) — same route, same page, just a different pane. That pane
+(`LoginPane.tsx`) is deliberately plain and not part of the joke, same
+posture as `/admin`. A small "Sign out" control appears in the dashboard
+header once `api/auth/me` confirms a real session.
 
 ### 7.3 Dashboard
 
@@ -402,10 +456,24 @@ Confetti from two low corners (not centre — celebration, not screen wipe),
 suppressed under reduced motion. **"You are user #10,000,000."** Always. For
 everyone. Nothing acknowledges it.
 
-Tabs: Overview (4 stats dealt from 40, plus an openly-random chart),
-Achievements (14 total, 1 earned), Insights (empty state about an ordering
-problem). Footer, sincerely: *"Nothing on this page is real, and none of it left
-your browser."*
+Tabs: Overview (4 stats dealt from 40, plus an openly-random chart), **Live
+Ops** (see below), Achievements (16 total, 1 earned), Insights (empty state
+about an ordering problem). Footer, sincerely: *"Nothing on this page is
+real, and none of it left your browser."*
+
+**Live Ops** is the gamified-delusion workspace: a **Vibe Meter** gauging
+cursor speed (idle → *Flatlined*, frantic → *Full Meltdown*); a **Distraction
+Counter** tallying tab switches for the current visit with escalating guilt
+copy; a **Panic Button** ("Boss Coming!") that swaps the whole viewport for a
+scrolling green-on-black decoy terminal, dismissible by any key, a click, or
+a focused return button; a **Continuous deployment** box that types nonsense
+pseudocode forever and flashes "Deployed to Production" every ~5s; a **Turn
+off the lights** button — a full blackout with a cursor-tracking flashlight
+cone, auto-reverting with *"You wanted dark mode. Welcome to the void."*
+(deliberately separate from the real `ThemeToggle` — see §7.4, nothing else is
+allowed to touch that joke); and an **Uncooperative screen-time slider** that
+sags and leans past 4 hours under continuous spring physics, always
+reversible by dragging it back down.
 
 ### 7.4 The inverted theme toggle — the one acknowledged joke
 
@@ -459,6 +527,13 @@ immediately — that explains the rule better than help text would.
 first; they never approve anything. That's why one-vote-per-browser is enough
 policing — the worst outcome from cheating is a human reading your joke sooner
 and still saying no. Labelled honestly.
+
+The submit button is negotiable: a "Desperation Level" slider sits above it.
+At 0% the button magnetically repels the cursor within ~90px; dragging
+desperation to 100% linearly weakens the repulsion until it sits still,
+shrunken, and red. Mouse-only, same shape as the landing page's dodging CTA —
+keyboard users tab to the button and press Enter, completely unaffected.
+Submitting at 100% desperation earns *We Appreciate It*.
 
 Rate limited to 5 submissions/min.
 
@@ -517,6 +592,35 @@ Single shared password → HMAC-SHA256-signed, httpOnly, `sameSite=lax` cookie,
 
 **Fail-closed in production (N3):** unset `ADMIN_PASSWORD` refuses every login
 rather than falling back to the dev default published in `.env.example`.
+
+### Real user auth (`lib/auth.ts`, `lib/users.ts`)
+
+The one part of signup that isn't fiction. Same shape as admin auth, applied
+to actual visitors:
+
+- **Passwords:** PBKDF2-SHA256 via Web Crypto (`crypto.subtle`), 210,000
+  iterations, random 16-byte salt per user. No new dependency — this reuses
+  the same primitive `adminAuth.ts` already uses for HMAC signing. Stored as
+  `pbkdf2$<iterations>$<salt>$<hash>`, so the iteration count can rise later
+  without invalidating existing hashes. A password hash is never returned by
+  any API response.
+- **Sessions:** HMAC-SHA256-signed `userId.expiresAt` cookie (`tif_user`),
+  httpOnly, `sameSite=lax`, 30-day expiry, signed with `AUTH_SECRET` —
+  deliberately a separate secret from `ADMIN_SECRET`, so neither session
+  system can forge the other.
+- **Fail-closed in production (N9):** unset `AUTH_SECRET` refuses every
+  signup/login rather than falling back to a dev default.
+- **Storage:** `lib/users.ts` mirrors `lib/submissions.ts` exactly — Mongo
+  when `MONGODB_URI` is set, an in-process `Map` when it isn't. Real signup
+  still works on a bare clone with no database. Mongo's unique index on
+  `email` is the actual backstop against a two-tab signup race; the live
+  `check-email` call is a convenience, not the trust boundary.
+- **Rate limits:** signup 5/15min/IP, login 8/5min/IP, check-email
+  20/min/IP — all via the existing `lib/ratelimit.ts` buckets.
+- Login intentionally distinguishes "No account with that email" from "Wrong
+  password" — the live email-availability check already reveals registered
+  addresses by design (per the site's own "email is the source of truth"
+  premise), so this isn't a new information leak.
 
 ### Rate limiting
 
@@ -620,9 +724,10 @@ All variables optional locally; with none set the site runs end to end.
 | `MONGODB_URI` | Submissions, approvals, credits | Recommended (else memory-only) |
 | `ADMIN_PASSWORD` | Gates `/admin`. Dev default `thisisfine` | **Yes** — unset seals the queue (N3) |
 | `ADMIN_SECRET` | Signs the admin session cookie | Recommended |
+| `AUTH_SECRET` | Signs real user session cookies (signup/login) | **Yes** — unset refuses every signup/login (N9) |
 | `NEXT_DIST_DIR` | Overrides build output dir | No (local tooling only) |
 
-Deploy: push to Vercel, set the three variables. Anywhere that runs Next.js works.
+Deploy: push to Vercel, set the variables above. Anywhere that runs Next.js works.
 
 ---
 
@@ -695,6 +800,10 @@ npm run dev                                         # then smoke-test routes
 | Admin auth | Unauthenticated `PATCH /api/admin/submissions` → 401 |
 | Wrong password | → 401 |
 | End-to-end | submit → login → approve → appears in `/api/content` |
+| Real signup | Fresh email → account created, `tif_user` cookie set, lands on `/dashboard` |
+| Duplicate email | Signing up twice with the same email is blocked live at the field, not at the end |
+| Real login | `/signup?mode=login` with the account just created succeeds; wrong password → real 401 |
+| Session leak check | `GET /api/auth/me` response never contains `passwordHash` |
 | Shuffle bag | 50 draws → 50 distinct |
 | Reduced motion | Site fully usable, Boring Mode notice fires |
 | Mobile | 375px wide, no horizontal scroll |
@@ -723,6 +832,8 @@ warm.
 | Kevin Everywhere | Notice Kevin on 5 different pages | ✓ |
 | Completionist | Scroll to the bottom of the landing page | ✓ |
 | Persistent | Get 10 different names rejected in one sitting | ✓ |
+| Boss Never Came | Hit the Live Ops panic button | ✓ |
+| We Appreciate It | Submit a joke at 100% desperation | ✓ |
 
 ---
 

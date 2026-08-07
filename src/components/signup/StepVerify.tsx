@@ -99,22 +99,29 @@ export function StepVerify({
     setBeat(0);
   };
 
-  // Walk the beats, then let everyone through.
+  // Walk the beats, then flip to done.
   useEffect(() => {
     if (beat < 0 || done) return;
 
     if (beat >= VALIDATION_BEATS.length) {
       setDone(true);
       play("success");
-      const t = setTimeout(onNext, 900);
-      return () => clearTimeout(t);
+      return;
     }
 
     // Irregular gaps: the "Approving anyway" beat lands after a longer pause.
     const gap = beat === VALIDATION_BEATS.length - 1 ? 1100 : 520 + Math.random() * 420;
     const t = setTimeout(() => setBeat((b) => b + 1), gap);
     return () => clearTimeout(t);
-  }, [beat, done, onNext, play]);
+  }, [beat, done, play]);
+
+  // Separate effect so setting `done` above can't race its own cleanup and
+  // cancel this timeout before it fires.
+  useEffect(() => {
+    if (!done) return;
+    const t = setTimeout(onNext, 900);
+    return () => clearTimeout(t);
+  }, [done, onNext]);
 
   const busy = beat >= 0;
 

@@ -8,23 +8,47 @@ import { useSound } from "@/components/providers/SoundProvider";
 import { dealMany } from "@/lib/bag";
 import { spring } from "@/lib/motion";
 import { cn } from "@/lib/cn";
+import type { AccountData, ServerError } from "./StepAccount";
 
 /**
- * The fake processing screen.
+ * The fake processing screen — which now does one real thing underneath it.
  *
- * Three things keep this from feeling scripted. The steps are dealt from a
- * 75-entry shuffle bag, so a second run through signup shows a completely
- * different sequence. The durations are random per-step (600–1500ms), so even
- * an identical sequence wouldn't feel identical. And the progress bar is
- * deliberately non-linear — it sprints to 80%, stalls, and finishes in a rush,
- * which is what every real progress bar does and what no fake one imitates.
+ * Three things keep the theater from feeling scripted. The steps are dealt
+ * from a 75-entry shuffle bag, so a second run through signup shows a
+ * completely different sequence. The durations are random per-step
+ * (600–1500ms), so even an identical sequence wouldn't feel identical. And
+ * the progress bar is deliberately non-linear — it sprints to 80%, stalls,
+ * and finishes in a rush, which is what every real progress bar does and what
+ * no fake one imitates.
+ *
+ * Underneath all of that, this component fires the real `POST /api/auth/signup`
+ * the moment it mounts, in parallel with the fake beats. `onDone` only fires
+ * once *both* the animation and the real request have finished; a real
+ * failure (a duplicate-email race is the realistic one, since the live check
+ * on Step 1 already caught the common case) short-circuits straight to
+ * `onFail` rather than making anyone sit through a fake success first.
  */
-export function StepProcessing({ onDone }: { onDone: () => void }) {
+export function StepProcessing({
+  account,
+  vibes,
+  trust,
+  onDone,
+  onFail,
+}: {
+  account: AccountData;
+  vibes: string[];
+  trust: number;
+  onDone: () => void;
+  onFail: (err: ServerError) => void;
+}) {
   const daily = useDaily();
   const [index, setIndex] = useState(0);
   const [pct, setPct] = useState(0);
+  const [animDone, setAnimDone] = useState(false);
+  const [requestDone, setRequestDone] = useState(false);
   const { play } = useSound();
   const finished = useRef(false);
+  const failed = useRef(false);
 
   // 6–9 distinct steps dealt from the full merged pool (built-ins plus any
   // approved community submissions), so a repeat signup never replays.
@@ -33,14 +57,58 @@ export function StepProcessing({ onDone }: { onDone: () => void }) {
     [daily.processing],
   );
 
+  // The real work, kicked off once, in parallel with the fake beats below.
   useEffect(() => {
-    if (finished.current) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetch("/api/auth/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: account.name,
+            email: account.email,
+            password: account.password,
+            age: account.age,
+            vibes,
+            trust,
+          }),
+        });
+        const data = (await res.json()) as { ok: boolean; field?: string; error?: string };
+        if (cancelled) return;
+
+        if (!res.ok || !data.ok) {
+          failed.current = true;
+          onFail({
+            field: (data.field as ServerError["field"]) ?? "general",
+            message: data.error ?? "Something went wrong. Try again.",
+          });
+          return;
+        }
+        setRequestDone(true);
+      } catch {
+        if (cancelled) return;
+        failed.current = true;
+        onFail({ field: "general", message: "Couldn't reach the server. Try again in a moment." });
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // Runs exactly once, when the processing screen mounts.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (finished.current || failed.current) return;
 
     if (index >= steps.length) {
       finished.current = true;
       setPct(100);
       play("success");
-      const t = setTimeout(onDone, 800);
+      const t = setTimeout(() => setAnimDone(true), 800);
       return () => clearTimeout(t);
     }
 
@@ -53,7 +121,13 @@ export function StepProcessing({ onDone }: { onDone: () => void }) {
     const dwell = 600 + Math.random() * 900;
     const t = setTimeout(() => setIndex((i) => i + 1), dwell);
     return () => clearTimeout(t);
-  }, [index, steps.length, onDone, play]);
+  }, [index, steps.length, play]);
+
+  // The fake animation is just theater; the real request is what matters.
+  // Only advance once both have actually finished.
+  useEffect(() => {
+    if (animDone && requestDone) onDone();
+  }, [animDone, requestDone, onDone]);
 
   const visible = steps.slice(Math.max(0, index - 3), index + 1);
 

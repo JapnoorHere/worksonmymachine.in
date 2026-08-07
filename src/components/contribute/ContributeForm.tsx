@@ -4,11 +4,12 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { Container, Card, Eyebrow, Badge } from "@/components/ui/Primitives";
-import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { PreviewSurface } from "./PreviewSurface";
 import { PendingBoard } from "./PendingBoard";
+import { DesperationSubmit } from "./DesperationSubmit";
 import { KevinAside } from "@/components/gags/KevinAside";
+import { Anxious } from "@/components/gags/AnxiousTooltip";
 import {
   CONTENT_TYPES,
   TRIGGERS,
@@ -161,20 +162,22 @@ export function ContributeForm() {
                 <label htmlFor="joke-text" className="sr-only">
                   Your joke text
                 </label>
-                <textarea
-                  id="joke-text"
-                  value={text}
-                  onChange={(e) => setText(e.target.value.slice(0, LIMITS.text.max))}
-                  rows={3}
-                  placeholder="Deadpan. Confident. Never winks at the reader."
-                  aria-describedby="joke-help"
-                  className={cn(
-                    "w-full resize-y rounded-[10px] border bg-surface p-3 text-[15px] leading-relaxed",
-                    "outline-none transition-colors placeholder:text-ink-faint",
-                    "focus:border-ember focus:shadow-[var(--tif-ring)]",
-                    tooShort ? "border-ember" : "border-line-strong",
-                  )}
-                />
+                <Anxious className="block w-full">
+                  <textarea
+                    id="joke-text"
+                    value={text}
+                    onChange={(e) => setText(e.target.value.slice(0, LIMITS.text.max))}
+                    rows={3}
+                    placeholder="Deadpan. Confident. Never winks at the reader."
+                    aria-describedby="joke-help"
+                    className={cn(
+                      "w-full resize-y rounded-[10px] border bg-surface p-3 text-[15px] leading-relaxed",
+                      "outline-none transition-colors placeholder:text-ink-faint",
+                      "focus:border-ember focus:shadow-[var(--tif-ring)]",
+                      tooShort ? "border-ember" : "border-line-strong",
+                    )}
+                  />
+                </Anxious>
                 <div
                   id="joke-help"
                   className="mt-1.5 flex items-baseline justify-between gap-3 text-[11.5px]"
@@ -274,15 +277,13 @@ export function ContributeForm() {
                 )}
               </AnimatePresence>
 
-              <div className="mt-5 flex flex-wrap items-center gap-3">
-                <Button size="lg" onClick={submit} disabled={!canSubmit} loading={busy}>
-                  Submit for review
-                </Button>
+              <div className="mt-5">
+                <DesperationSubmit onSubmit={submit} disabled={!canSubmit} loading={busy} />
                 {sent && (
                   <motion.p
                     initial={{ opacity: 0, x: -8 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="text-[12.5px] text-moss"
+                    className="mt-2 text-[12.5px] text-moss"
                   >
                     Sent. Write another.
                   </motion.p>

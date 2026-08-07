@@ -5,16 +5,60 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Container } from "@/components/ui/Primitives";
 import { StepProgress, stepVariants, type StepMeta } from "./StepShell";
-import { StepAccount, type AccountData } from "./StepAccount";
+import { StepAccount, type AccountData, type ServerError } from "./StepAccount";
 import { StepVerify } from "./StepVerify";
 import { StepVibe } from "./StepVibe";
 import { StepTrust } from "./StepTrust";
 import { StepProcessing } from "./StepProcessing";
+import { LoginPane } from "./LoginPane";
 import { KevinAside } from "@/components/gags/KevinAside";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useAchievements } from "@/components/providers/AchievementProvider";
 import { writeLS } from "@/lib/storage";
 import { spring } from "@/lib/motion";
+import { cn } from "@/lib/cn";
+
+type Mode = "signup" | "login";
+
+/** The one segmented control shared by both halves of this page. */
+function ModeToggle({ mode, onChange }: { mode: Mode; onChange: (m: Mode) => void }) {
+  const OPTIONS: { id: Mode; label: string }[] = [
+    { id: "signup", label: "Create account" },
+    { id: "login", label: "Log in" },
+  ];
+  return (
+    <div
+      role="group"
+      aria-label="Account mode"
+      className="mb-6 inline-flex rounded-full border border-line bg-surface-2 p-[3px]"
+    >
+      {OPTIONS.map((opt) => {
+        const active = mode === opt.id;
+        return (
+          <button
+            key={opt.id}
+            type="button"
+            onClick={() => onChange(opt.id)}
+            aria-pressed={active}
+            className={cn(
+              "relative cursor-pointer rounded-full px-4 py-1.5 text-[13px] font-semibold transition-colors",
+              active ? "text-ink" : "text-ink-faint hover:text-ink-soft",
+            )}
+          >
+            {active && (
+              <motion.span
+                layoutId="account-mode-pill"
+                transition={spring.bouncy}
+                className="absolute inset-0 -z-10 rounded-full border border-line bg-surface shadow-soft"
+              />
+            )}
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 /**
  * The onboarding set piece.
@@ -38,6 +82,15 @@ export function SignupFlow() {
   const toast = useToast();
   const { unlock } = useAchievements();
 
+  // Defaults to signup on first render (matching the static-prerendered
+  // markup) and flips to login post-mount if the URL asked for it — reading
+  // the query param via useSearchParams() would force a Suspense boundary
+  // onto an otherwise static page just for this one flag.
+  const [mode, setMode] = useState<Mode>("signup");
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("mode") === "login") setMode("login");
+  }, []);
+
   const [index, setIndex] = useState(0);
   const [dir, setDir] = useState(1);
   const [revealed, setRevealed] = useState(false);
@@ -51,6 +104,14 @@ export function SignupFlow() {
   });
   const [vibes, setVibes] = useState<string[]>([]);
   const [trust, setTrust] = useState(50);
+  const [serverError, setServerError] = useState<ServerError | null>(null);
+
+  // Editing any field after a real signup failure clears the stale error —
+  // it was about the *previous* attempt.
+  const updateAccount = useCallback((v: AccountData) => {
+    setServerError(null);
+    setAccount(v);
+  }, []);
 
   const steps = useMemo(
     () => (revealed ? [...BASE_STEPS, HIDDEN_STEP] : BASE_STEPS),
@@ -109,6 +170,25 @@ export function SignupFlow() {
     router.push("/dashboard");
   }, [account, vibes, trust, router, unlock]);
 
+  // The realistic failure here is a duplicate-email race — the live check on
+  // Step 1 already caught the common case. Never a dead end: back to Step 1,
+  // with the real reason shown on the field that actually caused it.
+  const handleSignupFail = useCallback(
+    (err: ServerError) => {
+      setProcessing(false);
+      setServerError(err);
+      toast({
+        title: "That didn't take.",
+        body: err.message,
+        emoji: "⚠️",
+        tone: "warn",
+        duration: 6000,
+      });
+      go(0, -1);
+    },
+    [go, toast],
+  );
+
   // Warn on refresh mid-flow, purely so the warning itself can be a bit.
   useEffect(() => {
     if (index === 0 || processing) return;
@@ -124,7 +204,13 @@ export function SignupFlow() {
     return (
       <Container className="flex min-h-[calc(100vh-8rem)] items-center py-12">
         <div className="mx-auto w-full max-w-lg">
-          <StepProcessing onDone={finish} />
+          <StepProcessing
+            account={account}
+            vibes={vibes}
+            trust={trust}
+            onDone={finish}
+            onFail={handleSignupFail}
+          />
         </div>
       </Container>
     );
@@ -132,9 +218,22 @@ export function SignupFlow() {
 
   const current = steps[index]?.id;
 
+  if (mode === "login") {
+    return (
+      <Container className="py-10 sm:py-14">
+        <div className="mx-auto w-full max-w-xl">
+          <ModeToggle mode={mode} onChange={setMode} />
+          <LoginPane />
+          <KevinAside surface="signup" align="center" className="mt-4" />
+        </div>
+      </Container>
+    );
+  }
+
   return (
     <Container className="py-10 sm:py-14">
       <div className="mx-auto w-full max-w-xl">
+        <ModeToggle mode={mode} onChange={setMode} />
         <StepProgress steps={steps} current={index} revealed={revealed} />
 
         <div className="relative">
@@ -149,7 +248,12 @@ export function SignupFlow() {
               transition={spring.gentle}
             >
               {current === "account" && (
-                <StepAccount value={account} onChange={setAccount} onNext={next} />
+                <StepAccount
+                  value={account}
+                  onChange={updateAccount}
+                  onNext={next}
+                  serverError={serverError}
+                />
               )}
               {current === "verify" && (
                 <StepVerify email={account.email} onNext={next} onBack={back} />

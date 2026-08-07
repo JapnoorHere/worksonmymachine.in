@@ -20,7 +20,10 @@ export type SoundName =
   | "whoosh"
   | "pop"
   | "thud"
-  | "chime";
+  | "chime"
+  | "suspense"
+  | "key"
+  | "flush";
 
 interface SoundCtx {
   enabled: boolean;
@@ -65,6 +68,18 @@ const VOICES: Record<SoundName, Voice[]> = {
   chime: [
     { type: "sine", freq: 1046.5, dur: 0.3, gain: 0.05 },
     { type: "sine", freq: 1567.98, dur: 0.42, gain: 0.032, delay: 0.05 },
+  ],
+  // Focusing a field earns a tiny "DUN DUN" — two low, close, detuned notes.
+  suspense: [
+    { type: "sawtooth", freq: 110, to: 98, dur: 0.42, gain: 0.045 },
+    { type: "sawtooth", freq: 130.8, to: 116, dur: 0.42, gain: 0.03, delay: 0.06 },
+  ],
+  // A single typewriter peck per keystroke. Deliberately toy-like, not a real click.
+  key: [{ type: "square", freq: 1800, to: 1200, dur: 0.028, gain: 0.03 }],
+  // Backspace, dramatized as a toilet flush — a long downward sweep.
+  flush: [
+    { type: "sawtooth", freq: 900, to: 70, dur: 0.34, gain: 0.045 },
+    { type: "triangle", freq: 480, to: 36, dur: 0.4, gain: 0.028, delay: 0.03 },
   ],
 };
 
