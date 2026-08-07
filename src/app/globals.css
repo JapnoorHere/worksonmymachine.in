@@ -1,0 +1,412 @@
+@import "tailwindcss";
+
+/* ============================================================================
+   THIS IS FINE™ — design tokens
+   Palette identity: warm paper & soot, signal-orange primary, moss secondary.
+   Deliberately not a purple gradient. We considered it. We chose violence.
+   ========================================================================= */
+
+:root {
+  /* --- surfaces -------------------------------------------------------- */
+  --tif-bg: #faf6f0;
+  --tif-bg-tint: #f4ece0;
+  --tif-surface: #ffffff;
+  --tif-surface-2: #f6f0e7;
+  --tif-surface-3: #ece2d4;
+  --tif-line: #e3d8c8;
+  --tif-line-strong: #d2c3ad;
+
+  /* --- ink ------------------------------------------------------------- */
+  --tif-ink: #17130d;
+  --tif-ink-soft: #6b6053;
+  --tif-ink-faint: #9c9082;
+
+  /* --- accents --------------------------------------------------------- */
+  --tif-ember: #e8410b;
+  --tif-ember-hi: #ff5a22;
+  --tif-ember-ink: #ffffff;
+  --tif-ember-wash: #fdebe3;
+
+  --tif-moss: #4f7a2e;
+  --tif-moss-wash: #e9f2df;
+
+  --tif-smoke: #5b6b74;
+  --tif-smoke-wash: #e8eef0;
+
+  --tif-warn: #b3730a;
+  --tif-warn-wash: #fbf0d9;
+
+  /* --- shadows (warm, never pure black) -------------------------------- */
+  --tif-shadow-sm: 0 1px 2px rgb(60 40 20 / 0.06), 0 1px 1px rgb(60 40 20 / 0.04);
+  --tif-shadow: 0 2px 4px rgb(60 40 20 / 0.05), 0 6px 16px -6px rgb(60 40 20 / 0.12);
+  --tif-shadow-lg: 0 4px 8px rgb(60 40 20 / 0.05), 0 24px 48px -12px rgb(60 40 20 / 0.2);
+  --tif-ring: 0 0 0 3px color-mix(in oklab, var(--tif-ember) 28%, transparent);
+
+  /* Daily "mood" hue-rotation. Set inline on <html> by the daily engine. */
+  --tif-mood-rotate: 0deg;
+
+  color-scheme: light;
+}
+
+/* System-dark, only when the user has NOT explicitly chosen light. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --tif-bg: #0e0c0a;
+    --tif-bg-tint: #16120e;
+    --tif-surface: #171310;
+    --tif-surface-2: #201a15;
+    --tif-surface-3: #2b231c;
+    --tif-line: #2e2620;
+    --tif-line-strong: #443a31;
+
+    --tif-ink: #f7f1e8;
+    --tif-ink-soft: #a89c8c;
+    --tif-ink-faint: #7b7062;
+
+    --tif-ember: #ff6134;
+    --tif-ember-hi: #ff7d57;
+    --tif-ember-ink: #1b0c06;
+    --tif-ember-wash: #331509;
+
+    --tif-moss: #9dc46a;
+    --tif-moss-wash: #1e2a15;
+
+    --tif-smoke: #93a8b2;
+    --tif-smoke-wash: #182126;
+
+    --tif-warn: #e0a53c;
+    --tif-warn-wash: #2b2010;
+
+    --tif-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.5);
+    --tif-shadow: 0 2px 4px rgb(0 0 0 / 0.4), 0 8px 24px -8px rgb(0 0 0 / 0.65);
+    --tif-shadow-lg: 0 4px 8px rgb(0 0 0 / 0.4), 0 28px 56px -12px rgb(0 0 0 / 0.75);
+
+    color-scheme: dark;
+  }
+}
+
+/* Explicit dark wins over everything. */
+:root[data-theme="dark"] {
+  --tif-bg: #0e0c0a;
+  --tif-bg-tint: #16120e;
+  --tif-surface: #171310;
+  --tif-surface-2: #201a15;
+  --tif-surface-3: #2b231c;
+  --tif-line: #2e2620;
+  --tif-line-strong: #443a31;
+
+  --tif-ink: #f7f1e8;
+  --tif-ink-soft: #a89c8c;
+  --tif-ink-faint: #7b7062;
+
+  --tif-ember: #ff6134;
+  --tif-ember-hi: #ff7d57;
+  --tif-ember-ink: #1b0c06;
+  --tif-ember-wash: #331509;
+
+  --tif-moss: #9dc46a;
+  --tif-moss-wash: #1e2a15;
+
+  --tif-smoke: #93a8b2;
+  --tif-smoke-wash: #182126;
+
+  --tif-warn: #e0a53c;
+  --tif-warn-wash: #2b2010;
+
+  --tif-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.5);
+  --tif-shadow: 0 2px 4px rgb(0 0 0 / 0.4), 0 8px 24px -8px rgb(0 0 0 / 0.65);
+  --tif-shadow-lg: 0 4px 8px rgb(0 0 0 / 0.4), 0 28px 56px -12px rgb(0 0 0 / 0.75);
+
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--tif-bg);
+  --color-bg-tint: var(--tif-bg-tint);
+  --color-surface: var(--tif-surface);
+  --color-surface-2: var(--tif-surface-2);
+  --color-surface-3: var(--tif-surface-3);
+  --color-line: var(--tif-line);
+  --color-line-strong: var(--tif-line-strong);
+
+  --color-ink: var(--tif-ink);
+  --color-ink-soft: var(--tif-ink-soft);
+  --color-ink-faint: var(--tif-ink-faint);
+
+  --color-ember: var(--tif-ember);
+  --color-ember-hi: var(--tif-ember-hi);
+  --color-ember-ink: var(--tif-ember-ink);
+  --color-ember-wash: var(--tif-ember-wash);
+
+  --color-moss: var(--tif-moss);
+  --color-moss-wash: var(--tif-moss-wash);
+  --color-smoke: var(--tif-smoke);
+  --color-smoke-wash: var(--tif-smoke-wash);
+  --color-warn: var(--tif-warn);
+  --color-warn-wash: var(--tif-warn-wash);
+
+  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "SF Mono", monospace;
+
+  --shadow-soft: var(--tif-shadow-sm);
+  --shadow-card: var(--tif-shadow);
+  --shadow-float: var(--tif-shadow-lg);
+
+  --radius-card: 14px;
+}
+
+/* ============================================================================
+   Base
+   ========================================================================= */
+
+@layer base {
+  * {
+    border-color: var(--tif-line);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--tif-bg);
+    color: var(--tif-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv05" 1, "ss01" 1;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.028em;
+    line-height: 1.05;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* One consistent, genuinely visible focus ring everywhere. */
+  :focus-visible {
+    outline: 2px solid var(--tif-ember);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: var(--tif-ember);
+    color: var(--tif-ember-ink);
+  }
+
+  ::-webkit-scrollbar {
+    width: 11px;
+    height: 11px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--tif-bg-tint);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--tif-line-strong);
+    border-radius: 99px;
+    border: 3px solid var(--tif-bg-tint);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--tif-ink-faint);
+  }
+}
+
+/* ============================================================================
+   Utilities
+   ========================================================================= */
+
+@utility skip-link {
+  position: absolute;
+  left: 50%;
+  top: 0.5rem;
+  translate: -50% -200%;
+  z-index: 200;
+  background: var(--tif-ink);
+  color: var(--tif-bg);
+  padding: 0.6rem 1.1rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: translate 0.18s ease;
+
+  &:focus-visible {
+    translate: -50% 0;
+  }
+}
+
+/* Faint film-grain + fire-lick gradient so flat areas aren't dead flat. */
+.tif-grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.32'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+.tif-hatch {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    color-mix(in oklab, var(--tif-ink) 7%, transparent) 0 1px,
+    transparent 1px 7px
+  );
+}
+
+.tif-dotgrid {
+  background-image: radial-gradient(
+    color-mix(in oklab, var(--tif-ink) 14%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+}
+
+/* Marquee for the status ticker. */
+@keyframes tif-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+.tif-marquee {
+  animation: tif-marquee 38s linear infinite;
+}
+
+@keyframes tif-blink {
+  0%,
+  48% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0.18;
+  }
+}
+.tif-blink {
+  animation: tif-blink 1.4s steps(1) infinite;
+}
+
+@keyframes tif-shimmer {
+  to {
+    background-position: 200% 0;
+  }
+}
+.tif-shimmer {
+  background: linear-gradient(
+    92deg,
+    var(--tif-surface-2) 0%,
+    var(--tif-surface-3) 40%,
+    var(--tif-surface-2) 80%
+  );
+  background-size: 200% 100%;
+  animation: tif-shimmer 1.6s linear infinite;
+}
+
+/* The mood shift: a gentle daily hue nudge applied to accent-bearing chrome. */
+.tif-mood {
+  filter: hue-rotate(var(--tif-mood-rotate));
+}
+
+/* Range input for the trust slider — styled by hand in both engines so the
+   thumb has the same physicality as the buttons. */
+.tif-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 26px;
+  background: transparent;
+}
+
+.tif-range::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 99px;
+  background: linear-gradient(
+    to right,
+    var(--tif-ember) 0%,
+    var(--tif-ember) var(--tif-fill, 0%),
+    var(--tif-surface-3) var(--tif-fill, 0%),
+    var(--tif-surface-3) 100%
+  );
+}
+
+.tif-range::-moz-range-track {
+  height: 8px;
+  border-radius: 99px;
+  background: var(--tif-surface-3);
+}
+
+.tif-range::-moz-range-progress {
+  height: 8px;
+  border-radius: 99px;
+  background: var(--tif-ember);
+}
+
+.tif-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -7px;
+  width: 22px;
+  height: 22px;
+  border-radius: 99px;
+  background: var(--tif-surface);
+  border: 2px solid var(--tif-ember);
+  box-shadow: var(--tif-shadow);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.tif-range::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 99px;
+  background: var(--tif-surface);
+  border: 2px solid var(--tif-ember);
+  box-shadow: var(--tif-shadow);
+  transition: transform 0.15s ease;
+}
+
+.tif-range:hover::-webkit-slider-thumb,
+.tif-range:active::-webkit-slider-thumb {
+  transform: scale(1.12);
+}
+.tif-range:hover::-moz-range-thumb,
+.tif-range:active::-moz-range-thumb {
+  transform: scale(1.12);
+}
+
+.tif-range:focus-visible::-webkit-slider-thumb {
+  box-shadow: var(--tif-ring);
+}
+.tif-range:focus-visible::-moz-range-thumb {
+  box-shadow: var(--tif-ring);
+}
+
+/* ============================================================================
+   Boring Mode™ (prefers-reduced-motion)
+   ========================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
