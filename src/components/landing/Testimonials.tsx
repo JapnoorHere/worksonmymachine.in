@@ -108,7 +108,7 @@ export function Testimonials() {
           />
           <div className="relative">
             <h2 className="mx-auto max-w-2xl text-[clamp(1.9rem,4.2vw,2.9rem)] text-bg">
-              Join {daily.metrics.users.toLocaleString()} people who are also fine.
+              Join {daily.metrics.users.toLocaleString("en-US")} people who are also fine.
             </h2>
             <p className="mx-auto mt-4 max-w-md text-[15px] leading-relaxed opacity-70">
               Six steps. Roughly two minutes. At least one of your answers will be

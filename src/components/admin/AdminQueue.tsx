@@ -297,7 +297,7 @@ export function AdminQueue() {
                           </Button>
                         )}
                         <span className="ml-auto self-center font-mono text-[10.5px] text-ink-faint">
-                          {new Date(row.createdAt).toLocaleString()}
+                          {new Date(row.createdAt).toLocaleString("en-US")}
                         </span>
                       </div>
                     </div>
