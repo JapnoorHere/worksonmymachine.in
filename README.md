@@ -65,6 +65,11 @@ This is the door most people should use.
 Standard fork → branch → PR. No CLA, no issue template, no bot demanding you
 fill in a form. Open a PR, I'll read it.
 
+**Read [PROJECT.md](PROJECT.md) first.** It's the canonical reference — every
+feature, every rule, the comedic timing constants and why they're set where they
+are, the safety invariants around contributor input, and the local dev traps
+that will otherwise eat an afternoon.
+
 Good first PRs: new content in `src/lib/content.ts` (it's all plain arrays), a
 new gag component, or an accessibility fix — those get merged fastest, because
 the one genuinely non-negotiable rule here is that the joke site has to be
@@ -108,6 +113,9 @@ every visitor.
 
 Next.js 15 (App Router) · TypeScript · Tailwind CSS v4 · Framer Motion ·
 MongoDB via Mongoose
+
+> Full architecture, design system, and every rule this project runs under live
+> in **[PROJECT.md](PROJECT.md)**. What follows is the short version.
 
 ```
 src/
