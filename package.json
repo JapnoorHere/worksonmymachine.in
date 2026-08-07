@@ -4,10 +4,12 @@
   "private": true,
   "description": "This Is Fine™ — a fake SaaS that takes itself extremely seriously.",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbopack",
+    "dev:webpack": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "clean": "node scripts/clean.mjs"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.3",
