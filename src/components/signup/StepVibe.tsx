@@ -72,7 +72,7 @@ export function StepVibe({
               whileTap={{ scale: 0.97 }}
               transition={spring.snappy}
               className={cn(
-                "flex cursor-pointer items-center gap-3 rounded-xl border p-3.5 text-left transition-colors",
+                "flex cursor-pointer items-start gap-3 rounded-xl border p-3.5 text-left transition-colors",
                 active
                   ? "border-ember bg-ember-wash"
                   : "border-line bg-surface hover:border-line-strong hover:bg-surface-2",
@@ -81,7 +81,7 @@ export function StepVibe({
               <motion.span
                 animate={active ? { scale: [1, 1.35, 1], rotate: [0, -12, 0] } : { scale: 1 }}
                 transition={spring.bouncy}
-                className="text-[21px] leading-none"
+                className="mt-0.5 text-[21px] leading-none"
                 aria-hidden
               >
                 {v.emoji}
@@ -96,7 +96,7 @@ export function StepVibe({
               </span>
               <span
                 className={cn(
-                  "grid size-4.5 shrink-0 place-items-center rounded-md border transition-colors",
+                  "mt-0.5 grid size-4.5 shrink-0 place-items-center rounded-md border transition-colors",
                   active ? "border-ember bg-ember" : "border-line-strong",
                 )}
                 aria-hidden
