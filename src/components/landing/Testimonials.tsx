@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Container, Eyebrow, Card } from "@/components/ui/Primitives";
 import { Button } from "@/components/ui/Button";
 import { useDaily } from "@/components/providers/DailyProvider";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { TESTIMONIALS, FAKE_LOGOS } from "@/lib/content";
 import { useDealtMany } from "@/lib/useDealt";
 import { KevinAside } from "@/components/gags/KevinAside";
@@ -12,6 +13,7 @@ import { riseIn, stagger } from "@/lib/motion";
 
 export function Testimonials() {
   const daily = useDaily();
+  const { user } = useAuth();
 
   // Six of fifty, dealt fresh on every visit — reload and the wall is different
   // people. The logo row rotates independently for the same reason.
@@ -115,8 +117,8 @@ export function Testimonials() {
               rejected on principle.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link href="/signup">
-                <Button size="lg">Get started free</Button>
+              <Link href={user ? "/dashboard" : "/signup"}>
+                <Button size="lg">{user ? "Go to dashboard" : "Get started free"}</Button>
               </Link>
               <Link href="/hall-of-cringe">
                 <Button

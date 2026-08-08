@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { Container } from "@/components/ui/Primitives";
 import { StepProgress, stepVariants, type StepMeta } from "./StepShell";
@@ -14,11 +15,39 @@ import { LoginPane } from "./LoginPane";
 import { KevinAside } from "@/components/gags/KevinAside";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useAchievements } from "@/components/providers/AchievementProvider";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { writeLS } from "@/lib/storage";
 import { spring } from "@/lib/motion";
 import { cn } from "@/lib/cn";
 
 type Mode = "signup" | "login";
+
+/**
+ * A real notice, not a bit — shown above either pane when a session already
+ * exists, so this page stops acting like it's never met you. Doesn't force a
+ * redirect: someone might genuinely want a second account.
+ */
+function LoggedInNotice({ email, onLogout }: { email: string; onLogout: () => void }) {
+  return (
+    <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-surface-2 px-4 py-3 text-[13px]">
+      <span className="text-ink-soft">
+        You&apos;re logged in as <span className="font-semibold text-ink">{email}</span>.
+      </span>
+      <span className="flex items-center gap-3">
+        <Link href="/dashboard" className="font-semibold text-ember hover:underline">
+          Go to dashboard
+        </Link>
+        <button
+          type="button"
+          onClick={onLogout}
+          className="cursor-pointer text-ink-faint hover:text-ink hover:underline"
+        >
+          Log out and start over
+        </button>
+      </span>
+    </div>
+  );
+}
 
 /** The one segmented control shared by both halves of this page. */
 function ModeToggle({ mode, onChange }: { mode: Mode; onChange: (m: Mode) => void }) {
@@ -81,6 +110,7 @@ export function SignupFlow() {
   const router = useRouter();
   const toast = useToast();
   const { unlock } = useAchievements();
+  const { user, refresh, logout } = useAuth();
 
   // Defaults to signup on first render (matching the static-prerendered
   // markup) and flips to login post-mount if the URL asked for it — reading
@@ -156,7 +186,7 @@ export function SignupFlow() {
     else router.push("/");
   }, [index, go, router]);
 
-  const finish = useCallback(() => {
+  const finish = useCallback(async () => {
     // The dashboard reads this back to greet you by your (rejected) name.
     writeLS("profile", {
       name: account.name.trim() || "Valued User",
@@ -167,8 +197,12 @@ export function SignupFlow() {
       joinedAt: new Date().toISOString(),
     });
     unlock("signed-up");
+    // The account just got created server-side — pull the session in before
+    // navigating, so the nav on /dashboard doesn't render a stale logged-out
+    // frame while its own fetch is still in flight.
+    await refresh();
     router.push("/dashboard");
-  }, [account, vibes, trust, router, unlock]);
+  }, [account, vibes, trust, router, unlock, refresh]);
 
   // The realistic failure here is a duplicate-email race — the live check on
   // Step 1 already caught the common case. Never a dead end: back to Step 1,
@@ -222,6 +256,7 @@ export function SignupFlow() {
     return (
       <Container className="py-10 sm:py-14">
         <div className="mx-auto w-full max-w-xl">
+          {user && <LoggedInNotice email={user.email} onLogout={logout} />}
           <ModeToggle mode={mode} onChange={setMode} />
           <LoginPane />
           <KevinAside surface="signup" align="center" className="mt-4" />
@@ -233,6 +268,7 @@ export function SignupFlow() {
   return (
     <Container className="py-10 sm:py-14">
       <div className="mx-auto w-full max-w-xl">
+        {user && <LoggedInNotice email={user.email} onLogout={logout} />}
         <ModeToggle mode={mode} onChange={setMode} />
         <StepProgress steps={steps} current={index} revealed={revealed} />
 

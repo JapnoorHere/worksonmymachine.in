@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { useDaily } from "@/components/providers/DailyProvider";
 import { useAchievements } from "@/components/providers/AchievementProvider";
 import { useSound } from "@/components/providers/SoundProvider";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { ACHIEVEMENTS, DASHBOARD_STATS } from "@/lib/content";
 import { makeRng } from "@/lib/seed";
 import { readLS } from "@/lib/storage";
@@ -39,35 +40,18 @@ export function Dashboard() {
   const daily = useDaily();
   const { unlocked } = useAchievements();
   const { play } = useSound();
+  const { user, logout } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [tab, setTab] = useState<Tab>("Overview");
   const [mounted, setMounted] = useState(false);
-  const [session, setSession] = useState<{ id: string; name: string; email: string } | null>(null);
 
   useEffect(() => {
     setProfile(readLS<Profile | null>("profile", null));
     setMounted(true);
   }, []);
 
-  // The dashboard itself still reads the localStorage profile above for its
-  // personalization (unchanged) — this is purely to show a real sign-out
-  // control when a real session actually exists.
-  useEffect(() => {
-    fetch("/api/auth/me")
-      .then(async (res) => {
-        if (!res.ok) return;
-        const data = (await res.json()) as {
-          ok: boolean;
-          user?: { id: string; name: string; email: string };
-        };
-        if (data.ok && data.user) setSession(data.user);
-      })
-      .catch(() => {});
-  }, []);
-
   const signOut = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    setSession(null);
+    await logout();
     play("click");
   };
 
@@ -110,7 +94,12 @@ export function Dashboard() {
     }));
   }, [daily.key]);
 
-  const name = profile?.name || "Valued User";
+  // A real account (once logged in) is the source of truth; the localStorage
+  // profile is only a fallback for someone who lands on /dashboard without
+  // one — direct nav here has never been gated, and that stays true.
+  const displayName = mounted ? user?.name || profile?.name || "Valued User" : "…";
+  const displayTrust = mounted ? (user?.trust ?? profile?.trust ?? 50) : 50;
+  const displayVibes = mounted ? (user?.vibes ?? profile?.vibes ?? []) : [];
   const earned = ACHIEVEMENTS.filter((a) => unlocked.includes(a.id));
 
   return (
@@ -132,7 +121,7 @@ export function Dashboard() {
             Welcome aboard
           </p>
           <h1 className="mt-2 text-[clamp(1.9rem,5vw,3rem)] text-bg">
-            You&apos;re in, {mounted ? name : "…"}.
+            You&apos;re in, {displayName}.
           </h1>
           <p className="mt-3 max-w-lg text-[15px] leading-relaxed opacity-70">
             You are user{" "}
@@ -146,16 +135,16 @@ export function Dashboard() {
               plan: free forever*
             </span>
             <span className="rounded-full bg-white/10 px-3 py-1.5 font-mono text-[11px]">
-              trust: {mounted ? (profile?.trust ?? 50) : 50}%
+              trust: {displayTrust}%
             </span>
             <span className="rounded-full bg-white/10 px-3 py-1.5 font-mono text-[11px]">
               seats: 1 of 1
             </span>
-            {mounted && session && (
+            {mounted && user && (
               <button
                 type="button"
                 onClick={signOut}
-                title={session.email}
+                title={user.email}
                 className="cursor-pointer rounded-full bg-white/10 px-3 py-1.5 font-mono text-[11px] transition-colors hover:bg-white/20"
               >
                 sign out
@@ -249,8 +238,8 @@ export function Dashboard() {
             <Card className="flex h-full flex-col p-5">
               <Eyebrow>Your vibes</Eyebrow>
               <div className="mt-3 flex flex-1 flex-wrap content-start gap-1.5">
-                {mounted && profile?.vibes?.length ? (
-                  profile.vibes.map((v) => (
+                {displayVibes.length ? (
+                  displayVibes.map((v) => (
                     <span
                       key={v}
                       className="rounded-full bg-surface-2 px-2.5 py-1 text-[11.5px] text-ink-soft"

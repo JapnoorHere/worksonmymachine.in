@@ -8,6 +8,7 @@ import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
 import { SoundToggle } from "./SoundToggle";
 import { Button } from "./ui/Button";
+import { useAuth } from "./providers/AuthProvider";
 import { spring, ease } from "@/lib/motion";
 import { cn } from "@/lib/cn";
 
@@ -23,6 +24,7 @@ export function Nav() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  const { user } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -76,15 +78,23 @@ export function Nav() {
             <SoundToggle />
           </div>
           <ThemeToggle compact />
-          <Link
-            href="/signup?mode=login"
-            className="hidden rounded-lg px-2 py-1.5 text-[13px] font-medium text-ink-soft transition-colors hover:text-ink sm:block"
-          >
-            Log in
-          </Link>
-          <Link href="/signup" className="hidden rounded-[10px] sm:block">
-            <Button size="sm">Get started</Button>
-          </Link>
+          {user ? (
+            <Link href="/dashboard" className="hidden rounded-[10px] sm:block">
+              <Button size="sm">Dashboard</Button>
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/signup?mode=login"
+                className="hidden rounded-lg px-2 py-1.5 text-[13px] font-medium text-ink-soft transition-colors hover:text-ink sm:block"
+              >
+                Log in
+              </Link>
+              <Link href="/signup" className="hidden rounded-[10px] sm:block">
+                <Button size="sm">Get started</Button>
+              </Link>
+            </>
+          )}
 
           <button
             type="button"
@@ -141,9 +151,9 @@ export function Nav() {
                 </motion.li>
               ))}
               <li className="flex items-center gap-3 pt-4 pb-2">
-                <Link href="/signup" className="flex-1">
+                <Link href={user ? "/dashboard" : "/signup"} className="flex-1">
                   <Button size="lg" className="w-full">
-                    Get started
+                    {user ? "Dashboard" : "Get started"}
                   </Button>
                 </Link>
                 <SoundToggle />

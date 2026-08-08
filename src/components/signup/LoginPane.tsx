@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Field } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
 import { StepShell } from "./StepShell";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 interface LoginError {
   field: "email" | "password" | "general";
@@ -18,6 +19,7 @@ interface LoginError {
  */
 export function LoginPane() {
   const router = useRouter();
+  const { refresh } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<LoginError | null>(null);
@@ -41,6 +43,7 @@ export function LoginPane() {
         });
         return;
       }
+      await refresh();
       router.push("/dashboard");
     } catch {
       setError({ field: "general", message: "Couldn't reach the server. Try again." });

@@ -101,7 +101,7 @@ export function ContributeForm() {
         <p className="mt-3 text-[14px] leading-relaxed text-ink-faint">
           Want to build an actual feature instead?{" "}
           <a
-            href="https://github.com"
+            href="https://github.com/JapnoorHere/worksonmymachine.in"
             target="_blank"
             rel="noopener noreferrer"
             className="text-ember underline-offset-2 hover:underline"

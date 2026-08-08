@@ -21,7 +21,7 @@ const COLUMNS = [
     links: [
       { label: "Contribute a joke", href: "/contribute" },
       { label: "Hall of Cringe", href: "/hall-of-cringe" },
-      { label: "GitHub", href: "https://github.com" },
+      { label: "GitHub", href: "https://github.com/JapnoorHere/worksonmymachine.in" },
       { label: "Careers", href: "/404-careers" },
     ],
   },

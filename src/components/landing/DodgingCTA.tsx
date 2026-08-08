@@ -6,6 +6,7 @@ import { motion, useAnimationControls } from "framer-motion";
 import { useSound } from "@/components/providers/SoundProvider";
 import { useAchievements } from "@/components/providers/AchievementProvider";
 import { useToast } from "@/components/providers/ToastProvider";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { spring } from "@/lib/motion";
 
 /**
@@ -24,6 +25,7 @@ export function DodgingCTA() {
   const { play } = useSound();
   const { unlock } = useAchievements();
   const toast = useToast();
+  const { user } = useAuth();
   const busy = useRef(false);
 
   const dodge = async () => {
@@ -57,7 +59,7 @@ export function DodgingCTA() {
 
   const go = () => {
     play("success");
-    router.push("/signup");
+    router.push(user ? "/dashboard" : "/signup");
   };
 
   return (
@@ -83,7 +85,7 @@ export function DodgingCTA() {
       transition={spring.snappy}
       className="group relative inline-flex h-13 cursor-pointer items-center gap-2.5 rounded-xl bg-ember px-7 text-[15.5px] font-semibold text-ember-ink shadow-[0_1px_0_rgba(255,255,255,0.25)_inset,0_8px_24px_-8px_rgba(232,65,11,0.7)]"
     >
-      Get started free
+      {user ? "Go to dashboard" : "Get started free"}
       <svg
         viewBox="0 0 18 18"
         className="size-[17px] transition-transform duration-300 group-hover:translate-x-1"

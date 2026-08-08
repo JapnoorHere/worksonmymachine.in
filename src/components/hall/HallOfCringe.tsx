@@ -161,7 +161,7 @@ export function HallOfCringe() {
               site. Standard PR flow. A human reviews and merges.
             </p>
             <a
-              href="https://github.com"
+              href="https://github.com/JapnoorHere/worksonmymachine.in"
               target="_blank"
               rel="noopener noreferrer"
               className="mt-4 inline-block"

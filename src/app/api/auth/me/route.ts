@@ -11,5 +11,15 @@ export async function GET() {
   const user = await findUserById(userId);
   if (!user) return NextResponse.json({ ok: false }, { status: 401 });
 
-  return NextResponse.json({ ok: true, user: { id: user.id, name: user.name, email: user.email } });
+  return NextResponse.json({
+    ok: true,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      age: user.age,
+      vibes: user.vibes,
+      trust: user.trust,
+    },
+  });
 }

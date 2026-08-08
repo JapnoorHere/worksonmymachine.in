@@ -5,10 +5,11 @@ import { ThemeProvider } from "./ThemeProvider";
 import { ToastProvider } from "./ToastProvider";
 import { AchievementProvider } from "./AchievementProvider";
 import { DailyProvider } from "./DailyProvider";
+import { AuthProvider } from "./AuthProvider";
 
 /**
  * Provider order matters: toasts need sound, achievements need toasts.
- * Theme and daily content are independent of both.
+ * Theme, daily content, and auth are independent of the rest.
  */
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
@@ -16,7 +17,9 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
       <SoundProvider>
         <ToastProvider>
           <AchievementProvider>
-            <DailyProvider>{children}</DailyProvider>
+            <DailyProvider>
+              <AuthProvider>{children}</AuthProvider>
+            </DailyProvider>
           </AchievementProvider>
         </ToastProvider>
       </SoundProvider>
