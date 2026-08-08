@@ -8,19 +8,21 @@ import { DailyProvider } from "./DailyProvider";
 import { AuthProvider } from "./AuthProvider";
 
 /**
- * Provider order matters: toasts need sound, achievements need toasts.
- * Theme, daily content, and auth are independent of the rest.
+ * Provider order matters: toasts need sound, achievements need toasts, and
+ * achievements now need auth too — unlocks sync onto the account when there
+ * is one, so `AuthProvider` has to resolve above them. Theme and daily
+ * content are independent of the rest.
  */
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider>
       <SoundProvider>
         <ToastProvider>
-          <AchievementProvider>
-            <DailyProvider>
-              <AuthProvider>{children}</AuthProvider>
-            </DailyProvider>
-          </AchievementProvider>
+          <AuthProvider>
+            <AchievementProvider>
+              <DailyProvider>{children}</DailyProvider>
+            </AchievementProvider>
+          </AuthProvider>
         </ToastProvider>
       </SoundProvider>
     </ThemeProvider>

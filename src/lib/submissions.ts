@@ -105,9 +105,21 @@ export async function listSubmissions(
   return docs.map(toRecord);
 }
 
+/** Everything one account has ever submitted, newest first. */
+export async function listByUser(userId: string, limit = 100): Promise<SubmissionRecord[]> {
+  const db = await connectDB();
+
+  if (!db) {
+    return memory.filter((r) => r.userId === userId).slice(0, limit);
+  }
+
+  const docs = await Submission.find({ userId }).sort({ createdAt: -1 }).limit(limit).lean();
+  return docs.map(toRecord);
+}
+
 export async function setStatus(
   id: string,
-  status: "approved" | "rejected",
+  status: "approved" | "rejected" | "pending",
   text?: string,
 ): Promise<SubmissionRecord | null> {
   const db = await connectDB();
@@ -120,7 +132,8 @@ export async function setStatus(
       rec.text = text;
     }
     rec.status = status;
-    rec.reviewedAt = new Date().toISOString();
+    // Back to pending means genuinely un-reviewed, not reviewed-then-parked.
+    rec.reviewedAt = status === "pending" ? null : new Date().toISOString();
     return rec;
   }
 
@@ -132,7 +145,7 @@ export async function setStatus(
     existing.text = text;
   }
   existing.status = status;
-  existing.reviewedAt = new Date();
+  existing.reviewedAt = status === "pending" ? null : new Date();
   await existing.save();
   return toRecord(existing);
 }

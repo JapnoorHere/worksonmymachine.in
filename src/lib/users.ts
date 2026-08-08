@@ -15,6 +15,7 @@ export interface UserRecord {
   age: number | null;
   vibes: string[];
   trust: number;
+  achievements: string[];
   createdAt: string;
 }
 
@@ -57,6 +58,7 @@ function toRecord(doc: any): UserRecord {
     age: doc.age ?? null,
     vibes: doc.vibes ?? [],
     trust: doc.trust ?? 50,
+    achievements: doc.achievements ?? [],
     createdAt: new Date(doc.createdAt).toISOString(),
   };
 }
@@ -71,6 +73,7 @@ export async function createUser(input: NewUser): Promise<UserRecord> {
       id: memId(),
       ...input,
       email,
+      achievements: [],
       createdAt: new Date().toISOString(),
     };
     memory.set(email, rec);
@@ -99,6 +102,34 @@ export async function findUserByEmail(email: string): Promise<UserRecord | null>
 
   const doc = await User.findOne({ email: normalized });
   return doc ? toRecord(doc) : null;
+}
+
+/**
+ * Merges ids into the account's unlocked set and returns the result.
+ *
+ * A union, never a replace: the same account can be unlocking things in two
+ * browsers at once, and an anonymous streak gets merged in the first time
+ * someone logs in. Nothing is ever taken away by a sync — the only way to lose
+ * an achievement is the local reset, which is per-browser by design.
+ */
+export async function setAchievements(id: string, ids: string[]): Promise<string[] | null> {
+  const db = await connectDB();
+
+  if (!db) {
+    for (const rec of memory.values()) {
+      if (rec.id !== id) continue;
+      rec.achievements = [...new Set([...rec.achievements, ...ids])];
+      return rec.achievements;
+    }
+    return null;
+  }
+
+  const doc = await User.findByIdAndUpdate(
+    id,
+    { $addToSet: { achievements: { $each: ids } } },
+    { new: true },
+  ).catch(() => null);
+  return doc ? (doc.achievements ?? []) : null;
 }
 
 export async function findUserById(id: string): Promise<UserRecord | null> {

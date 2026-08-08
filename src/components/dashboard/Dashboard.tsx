@@ -23,6 +23,7 @@ import { DistractionCounter } from "./DistractionCounter";
 import { PanicButton } from "./PanicButton";
 import { ScreenTimeSlider } from "./ScreenTimeSlider";
 import { VoidButton } from "./VoidButton";
+import { YourSubmissions } from "./YourSubmissions";
 
 interface Profile {
   name: string;
@@ -33,7 +34,7 @@ interface Profile {
   joinedAt: string;
 }
 
-const TABS = ["Overview", "Live Ops", "Achievements", "Insights"] as const;
+const TABS = ["Overview", "Live Ops", "Submissions", "Achievements", "Insights"] as const;
 type Tab = (typeof TABS)[number];
 
 export function Dashboard() {
@@ -290,6 +291,12 @@ export function Dashboard() {
         </motion.div>
       )}
 
+      {tab === "Submissions" && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <YourSubmissions />
+        </motion.div>
+      )}
+
       {tab === "Achievements" && (
         <motion.div
           variants={stagger()}
@@ -361,8 +368,12 @@ export function Dashboard() {
 
       <KevinAside surface="dashboard" align="center" className="mt-8" />
 
+      {/* This used to claim nothing here was real and none of it left the
+          browser. Both halves stopped being true once the account, its unlocks,
+          and its submissions started coming off a server. */}
       <p className="mt-3 text-center text-[12.5px] text-ink-faint">
-        Nothing on this page is real, and none of it left your browser.{" "}
+        Every number above is invented on the spot. Your account, your unlocks, and
+        your submissions are the real parts.{" "}
         <Link href="/contribute" className="text-ember underline-offset-2 hover:underline">
           Add a joke of your own →
         </Link>

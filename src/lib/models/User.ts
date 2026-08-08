@@ -15,6 +15,11 @@ const UserSchema = new Schema(
     age: { type: Number, default: null },
     vibes: { type: [String], default: [] },
     trust: { type: Number, default: 50, min: 0, max: 100 },
+    /**
+     * Unlocked achievement ids. Kept on the account so progress survives a new
+     * browser; `localStorage` stays the store for people without one.
+     */
+    achievements: { type: [String], default: [] },
   },
   { timestamps: true },
 );

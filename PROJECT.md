@@ -218,18 +218,20 @@ src/
 │   └── api/
 │       ├── content/       GET approved community pools
 │       ├── submissions/   POST submit · GET pending · vote/
-│       ├── admin/         login/ · submissions/ (approve, reject, edit)
-│       ├── auth/          check-email/ · signup/ · login/ · logout/ · me/
+│       ├── admin/         login/ · submissions/ (approve, reject, unreview, edit)
+│       ├── auth/          check-email/ · signup/ · login/ · logout/ · me/ ·
+│       │                  achievements/
+│       ├── me/            submissions/ — your own, any status
 │       └── hall/          GET contributor stats
 │
 ├── components/
-│   ├── providers/         Theme · Sound · Toast · Achievement · Daily
+│   ├── providers/         Theme · Sound · Toast · Auth · Achievement · Daily
 │   ├── ui/                Button · Field · Card · Badge · Container
 │   ├── landing/           Hero · DodgingCTA · LiveCounter · AppMock · …
 │   ├── signup/            SignupFlow + Step* components + LoginPane
-│   ├── dashboard/         Dashboard · Squiggle · VibeMeter · LiveCodeGenerator ·
-│   │                      DistractionCounter · PanicButton · ScreenTimeSlider ·
-│   │                      VoidButton
+│   ├── dashboard/         Dashboard · YourSubmissions · Squiggle · VibeMeter ·
+│   │                      LiveCodeGenerator · DistractionCounter · PanicButton ·
+│   │                      ScreenTimeSlider · VoidButton
 │   ├── contribute/        ContributeForm · PreviewSurface · PendingBoard ·
 │   │                      DesperationSubmit
 │   ├── admin/             AdminQueue
@@ -259,10 +261,12 @@ src/
 ### Provider order (matters)
 
 ```
-ThemeProvider → SoundProvider → ToastProvider → AchievementProvider → DailyProvider
+ThemeProvider → SoundProvider → ToastProvider → AuthProvider → AchievementProvider → DailyProvider
 ```
 
-Toasts need sound; achievements need toasts. Theme and daily are independent.
+Toasts need sound; achievements need toasts **and auth** (unlocks sync onto the
+account when there is one, so the session has to resolve above them). Theme and
+daily are independent.
 
 ### Where things belong
 
@@ -457,9 +461,27 @@ suppressed under reduced motion. **"You are user #10,000,000."** Always. For
 everyone. Nothing acknowledges it.
 
 Tabs: Overview (4 stats dealt from 40, plus an openly-random chart), **Live
-Ops** (see below), Achievements (16 total, 1 earned), Insights (empty state
-about an ordering problem). Footer, sincerely: *"Nothing on this page is
-real, and none of it left your browser."*
+Ops** (see below), **Submissions**, Achievements (16 total), Insights (empty
+state about an ordering problem).
+
+**Submissions** is the honest tab. It lists what this account has sent to
+`/contribute` and what became of it — in rotation, in review, or not used —
+including the pre-edit text when a reviewer tightened a line. Rejections show
+up here rather than nowhere, which is the whole point: before it existed a
+contributor had no way to find out, since the pending board is keyed by handle
+and the Hall only counts approvals. Logged out, it shows no rows at all.
+
+**Achievements follow the account**, not the browser. `localStorage` remains
+the store for anyone without one; when a session resolves, the two sets are
+merged by **union** and pushed to `/api/auth/achievements`. A sync can only
+ever add — two browsers both keep their progress, and an anonymous streak is
+absorbed at login. The local `reset()` stays per-browser.
+
+The footer used to read *"Nothing on this page is real, and none of it left
+your browser."* Both halves are false now that the account, its unlocks, and
+its submissions come off a server, so it names the fake parts instead: *"Every
+number above is invented on the spot."* **If you wire more real data in here,
+keep that line honest.**
 
 **Live Ops** is the gamified-delusion workspace: a **Vibe Meter** gauging
 cursor speed (idle → *Flatlined*, frantic → *Full Meltdown*); a **Distraction
@@ -563,6 +585,18 @@ sanitizer — trusted reviewer, untrusted clipboard.
 Approved items merge into the same pool the daily rotator reads. **A community
 line is indistinguishable from a built-in one** — contributors are in the actual
 rotation, not a "community corner" at the bottom of the page.
+
+Because it's a tool and not a bit, each row carries what the decision actually
+needs: whether an **account** stands behind the handle (`userId`, since the
+handle itself is free text anyone can type), how long it's been **waiting**
+(relative age, exact timestamp on hover), and that handle's **history** —
+approved / rejected / in queue — so nothing is judged in a vacuum. Filter
+buttons carry counts. All of it comes from the one `status=all` fetch; no extra
+queries.
+
+**Review is reversible.** `unreview` puts a decided item back in the queue and
+clears `reviewedAt`, so a rejection isn't a one-way door when the reviewer is
+one tired person.
 
 ### `/hall-of-cringe`
 

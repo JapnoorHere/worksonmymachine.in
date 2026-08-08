@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Container, Card } from "@/components/ui/Primitives";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
@@ -24,6 +24,8 @@ interface Row {
   text: string;
   trigger: Trigger;
   author: string;
+  /** Present when the submitter was logged in — the handle alone can be anyone. */
+  userId: string | null;
   status: "pending" | "approved" | "rejected";
   votes: number;
   createdAt: string;
@@ -33,6 +35,35 @@ interface Row {
 type Filter = "pending" | "approved" | "rejected" | "all";
 const FILTERS: Filter[] = ["pending", "approved", "rejected", "all"];
 
+/** How long this has been sitting there. The triage signal, not the timestamp. */
+function age(iso: string): string {
+  const mins = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60_000));
+  if (mins < 60) return `${mins}m`;
+  if (mins < 60 * 24) return `${Math.round(mins / 60)}h`;
+  return `${Math.round(mins / (60 * 24))}d`;
+}
+
+interface AuthorTally {
+  approved: number;
+  rejected: number;
+  pending: number;
+}
+
+/**
+ * Per-handle history, so a submission isn't judged in a vacuum. Computed from
+ * the `all` fetch the counts already need — no extra query, and a stale tally
+ * is harmless next to a decision a human is making anyway.
+ */
+function tallyByAuthor(rows: Row[]): Map<string, AuthorTally> {
+  const map = new Map<string, AuthorTally>();
+  for (const r of rows) {
+    const t = map.get(r.author) ?? { approved: 0, rejected: 0, pending: 0 };
+    t[r.status] += 1;
+    map.set(r.author, t);
+  }
+  return map;
+}
+
 export function AdminQueue() {
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [password, setPassword] = useState("");
@@ -41,9 +72,22 @@ export function AdminQueue() {
 
   const [filter, setFilter] = useState<Filter>("pending");
   const [rows, setRows] = useState<Row[]>([]);
+  const [allRows, setAllRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(false);
   const [edits, setEdits] = useState<Record<string, string>>({});
   const [working, setWorking] = useState<string | null>(null);
+
+  /** One `all` fetch backs both the filter counts and the per-handle history. */
+  const loadAll = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/submissions?status=all");
+      if (!res.ok) return;
+      const data = (await res.json()) as { ok: boolean; submissions?: Row[] };
+      setAllRows(data.submissions ?? []);
+    } catch {
+      /* Counts are a convenience. The queue itself still loaded. */
+    }
+  }, []);
 
   const load = useCallback(
     async (f: Filter) => {
@@ -57,19 +101,32 @@ export function AdminQueue() {
         const data = (await res.json()) as { ok: boolean; submissions?: Row[] };
         setRows(data.submissions ?? []);
         setAuthed(true);
+        void loadAll();
       } catch {
         setRows([]);
       } finally {
         setLoading(false);
       }
     },
-    [],
+    [loadAll],
   );
 
   // Probe the session on mount; a valid cookie skips the login screen.
   useEffect(() => {
     void load("pending");
   }, [load]);
+
+  const counts = useMemo(
+    () => ({
+      pending: allRows.filter((r) => r.status === "pending").length,
+      approved: allRows.filter((r) => r.status === "approved").length,
+      rejected: allRows.filter((r) => r.status === "rejected").length,
+      all: allRows.length,
+    }),
+    [allRows],
+  );
+
+  const tallies = useMemo(() => tallyByAuthor(allRows), [allRows]);
 
   const login = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,7 +158,7 @@ export function AdminQueue() {
     setRows([]);
   };
 
-  const act = async (row: Row, action: "approve" | "reject") => {
+  const act = async (row: Row, action: "approve" | "reject" | "unreview") => {
     setWorking(row.id);
     const text = edits[row.id];
     try {
@@ -117,6 +174,7 @@ export function AdminQueue() {
           delete next[row.id];
           return next;
         });
+        void loadAll();
         if (filter === "all") await load(filter);
       }
     } finally {
@@ -190,6 +248,14 @@ export function AdminQueue() {
             )}
           >
             {f}
+            <span
+              className={cn(
+                "ml-1.5 font-mono text-[11px] tabular-nums",
+                filter === f ? "opacity-70" : "text-ink-faint",
+              )}
+            >
+              {counts[f]}
+            </span>
           </button>
         ))}
         <button
@@ -211,6 +277,10 @@ export function AdminQueue() {
           {rows.map((row) => {
             const value = edits[row.id] ?? row.text;
             const dirty = value !== row.text;
+            const tally = tallies.get(row.author);
+            const repeat = tally
+              ? tally.approved + tally.rejected + tally.pending > 1
+              : false;
             return (
               <li key={row.id}>
                 <Card className="overflow-hidden">
@@ -239,8 +309,35 @@ export function AdminQueue() {
                         >
                           {row.status}
                         </span>
-                        <span className="ml-auto">@{row.author}</span>
+                        <span
+                          className="rounded bg-surface-2 px-2 py-1"
+                          title={new Date(row.createdAt).toLocaleString("en-US")}
+                        >
+                          {row.status === "pending" ? "waiting" : "age"}{" "}
+                          {age(row.createdAt)}
+                        </span>
+                        <span className="ml-auto flex items-center gap-1.5">
+                          @{row.author}
+                          {/* The handle is free text — anyone can type anyone's.
+                              This says whether an account stands behind it. */}
+                          {row.userId ? (
+                            <span className="rounded bg-moss-wash px-1.5 py-1 text-moss">
+                              account
+                            </span>
+                          ) : (
+                            <span className="rounded bg-surface-2 px-1.5 py-1">
+                              no account
+                            </span>
+                          )}
+                        </span>
                       </div>
+
+                      {repeat && tally && (
+                        <p className="mb-3 font-mono text-[10.5px] text-ink-faint">
+                          this handle: {tally.approved} approved · {tally.rejected}{" "}
+                          rejected · {tally.pending} in queue
+                        </p>
+                      )}
 
                       <label
                         htmlFor={`edit-${row.id}`}
@@ -266,21 +363,35 @@ export function AdminQueue() {
                       )}
 
                       <div className="mt-4 flex flex-wrap gap-2">
-                        <Button
-                          size="sm"
-                          onClick={() => act(row, "approve")}
-                          loading={working === row.id}
-                        >
-                          {dirty ? "Save & approve" : "Approve"}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => act(row, "reject")}
-                          disabled={working === row.id}
-                        >
-                          Reject
-                        </Button>
+                        {row.status !== "approved" && (
+                          <Button
+                            size="sm"
+                            onClick={() => act(row, "approve")}
+                            loading={working === row.id}
+                          >
+                            {dirty ? "Save & approve" : "Approve"}
+                          </Button>
+                        )}
+                        {row.status !== "rejected" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => act(row, "reject")}
+                            disabled={working === row.id}
+                          >
+                            Reject
+                          </Button>
+                        )}
+                        {row.status !== "pending" && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => act(row, "unreview")}
+                            disabled={working === row.id}
+                          >
+                            Back to pending
+                          </Button>
+                        )}
                         {dirty && (
                           <Button
                             size="sm"
@@ -296,9 +407,6 @@ export function AdminQueue() {
                             Undo edit
                           </Button>
                         )}
-                        <span className="ml-auto self-center font-mono text-[10.5px] text-ink-faint">
-                          {new Date(row.createdAt).toLocaleString("en-US")}
-                        </span>
                       </div>
                     </div>
 

@@ -9,6 +9,7 @@ export interface AuthUser {
   age: number | null;
   vibes: string[];
   trust: number;
+  achievements: string[];
 }
 
 interface AuthCtx {
@@ -53,7 +54,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       const data = (await res.json()) as { ok: boolean; user?: AuthUser };
-      setUser(data.ok && data.user ? data.user : null);
+      setUser(
+        data.ok && data.user
+          ? { ...data.user, achievements: data.user.achievements ?? [] }
+          : null,
+      );
     } catch {
       setUser(null);
     }

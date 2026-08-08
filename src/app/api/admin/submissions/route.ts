@@ -43,16 +43,20 @@ export async function PATCH(req: Request) {
   if (typeof id !== "string" || !id) {
     return NextResponse.json({ ok: false, error: "Missing id." }, { status: 400 });
   }
-  if (action !== "approve" && action !== "reject") {
+  // `unreview` puts a decided item back in the queue — rejection stops being a
+  // one-way door, which matters when the reviewer is one tired person.
+  const ACTIONS = { approve: "approved", reject: "rejected", unreview: "pending" } as const;
+  if (typeof action !== "string" || !(action in ACTIONS)) {
     return NextResponse.json({ ok: false, error: "Bad action." }, { status: 400 });
   }
+  const status = ACTIONS[action as keyof typeof ACTIONS];
 
   // Admin edits go through the same sanitizer as public input. Trusted reviewer,
   // untrusted clipboard.
   const text = body.text === undefined ? undefined : sanitizeText(body.text);
 
   try {
-    const updated = await setStatus(id, action === "approve" ? "approved" : "rejected", text);
+    const updated = await setStatus(id, status, text);
     if (!updated) {
       return NextResponse.json({ ok: false, error: "Not found." }, { status: 404 });
     }

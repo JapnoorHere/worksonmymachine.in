@@ -20,6 +20,7 @@ export async function GET() {
       age: user.age,
       vibes: user.vibes,
       trust: user.trust,
+      achievements: user.achievements,
     },
   });
 }
