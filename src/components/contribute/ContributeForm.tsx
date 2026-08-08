@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { Container, Card, Eyebrow, Badge } from "@/components/ui/Primitives";
@@ -20,6 +20,7 @@ import {
   type Trigger,
 } from "@/lib/content";
 import { LIMITS, sanitizeAuthor, sanitizeText } from "@/lib/sanitize";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { useToast } from "@/components/providers/ToastProvider";
 import { useAchievements } from "@/components/providers/AchievementProvider";
 import { useSound } from "@/components/providers/SoundProvider";
@@ -31,14 +32,25 @@ export function ContributeForm() {
   const [trigger, setTrigger] = useState<Trigger>("random");
   const [text, setText] = useState("");
   const [author, setAuthor] = useState("");
+  const [handleTouched, setHandleTouched] = useState(false);
   const [busy, setBusy] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [sent, setSent] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const toast = useToast();
+  const { user, loading: authLoading } = useAuth();
   const { unlock } = useAchievements();
   const { play } = useSound();
+
+  /* Logged in? Start from the account name instead of a blank box. The session
+     resolves after mount, so this fills in when it lands — but only while the
+     field is untouched, so it can never overwrite something being typed. The
+     field stays fully editable: posting under another handle is still allowed,
+     and the submission is linked to the account either way. */
+  useEffect(() => {
+    if (user && !handleTouched) setAuthor(sanitizeAuthor(user.name));
+  }, [user, handleTouched]);
 
   /* The preview shows the *sanitized* value, not the raw input. If someone
      types markup they see it neutered immediately, which explains the rule
@@ -59,7 +71,15 @@ export function ContributeForm() {
       const res = await fetch("/api/submissions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, trigger, text: cleanText, author: cleanAuthor }),
+        /* Send a blank handle as blank, not as the sanitizer's "anonymous"
+           fallback — the server can only tell "left it empty" from "typed
+           anonymous" if we don't collapse the two here. */
+        body: JSON.stringify({
+          type,
+          trigger,
+          text: cleanText,
+          author: author.trim() ? cleanAuthor : "",
+        }),
       });
       const data = (await res.json()) as { ok: boolean; errors?: string[] };
 
@@ -248,9 +268,12 @@ export function ContributeForm() {
                 <Field
                   label="Your handle"
                   hint="optional · shown in the Hall of Cringe"
-                  placeholder="anonymous"
+                  placeholder={user ? sanitizeAuthor(user.name) : "anonymous"}
                   value={author}
-                  onChange={(e) => setAuthor(e.target.value)}
+                  onChange={(e) => {
+                    setHandleTouched(true);
+                    setAuthor(e.target.value);
+                  }}
                   message={
                     author.trim() && cleanAuthor !== author.trim().replace(/^@+/, "")
                       ? `Will be stored as @${cleanAuthor}`
@@ -258,6 +281,36 @@ export function ContributeForm() {
                   }
                   tone="warn"
                 />
+
+                {/* Who this actually gets attributed to. Logged-in submissions
+                    carry the account id whatever handle is typed, so saying
+                    "anonymous" here would be a lie — the handle only decides
+                    the display name. */}
+                {!authLoading && (
+                  <p className="mt-2 text-[12px] leading-snug text-ink-faint">
+                    {user ? (
+                      <>
+                        Posting as{" "}
+                        <span className="font-mono text-ink-soft">
+                          @{author.trim() ? cleanAuthor : sanitizeAuthor(user.name)}
+                        </span>
+                        , linked to your {user.email} account
+                        {author.trim() ? "" : " (blank uses your account name)"}.
+                      </>
+                    ) : (
+                      <>
+                        Posting anonymously — nothing links this to an account.{" "}
+                        <Link
+                          href="/signup?mode=login"
+                          className="text-ember underline-offset-2 hover:underline"
+                        >
+                          Log in
+                        </Link>{" "}
+                        first if you want the credit.
+                      </>
+                    )}
+                  </p>
+                )}
               </div>
 
               <AnimatePresence>

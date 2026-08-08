@@ -12,6 +12,8 @@ import { cn } from "@/lib/cn";
 
 interface Contributor {
   author: string;
+  /** True when this handle has a real account behind it, not just typed text. */
+  linked?: boolean;
   approved: number;
   pending: number;
   latest: string | null;
@@ -114,7 +116,16 @@ export function HallOfCringe() {
                 </span>
 
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-mono text-[14px] font-medium">@{c.author}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="truncate font-mono text-[14px] font-medium">@{c.author}</p>
+                    {/* Ranking is unchanged — this only says the handle has an
+                        account behind it, rather than being typed by anyone. */}
+                    {c.linked && (
+                      <Badge tone="moss" className="shrink-0">
+                        <span aria-hidden>🔗</span> linked
+                      </Badge>
+                    )}
+                  </div>
                   <p className="mt-0.5 text-[12px] text-ink-faint">
                     {rankTitle(c.approved)}
                     {c.pending > 0 && ` · ${c.pending} in review`}

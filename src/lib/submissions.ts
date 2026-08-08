@@ -18,6 +18,8 @@ export interface SubmissionRecord {
   text: string;
   trigger: Trigger;
   author: string;
+  /** The account that submitted this, if any. `author` is still free text. */
+  userId: string | null;
   status: "pending" | "approved" | "rejected";
   votes: number;
   createdAt: string;
@@ -30,6 +32,7 @@ export interface NewSubmission {
   text: string;
   trigger: Trigger;
   author: string;
+  userId?: string | null;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -52,6 +55,7 @@ function toRecord(doc: any): SubmissionRecord {
     text: doc.text,
     trigger: doc.trigger,
     author: doc.author,
+    userId: doc.userId ?? null,
     status: doc.status,
     votes: doc.votes ?? 0,
     createdAt: new Date(doc.createdAt).toISOString(),
@@ -67,6 +71,7 @@ export async function createSubmission(input: NewSubmission): Promise<Submission
     const rec: SubmissionRecord = {
       id: memId(),
       ...input,
+      userId: input.userId ?? null,
       status: "pending",
       votes: 0,
       createdAt: new Date().toISOString(),
@@ -77,7 +82,11 @@ export async function createSubmission(input: NewSubmission): Promise<Submission
     return rec;
   }
 
-  const doc = await Submission.create({ ...input, status: "pending" });
+  const doc = await Submission.create({
+    ...input,
+    userId: input.userId ?? null,
+    status: "pending",
+  });
   return toRecord(doc);
 }
 
@@ -158,13 +167,23 @@ export async function approvedPools(): Promise<Partial<Record<ContentType, strin
 
 export interface ContributorStat {
   author: string;
+  /** Set when at least one submission under this handle came from an account. */
+  userId: string | null;
   approved: number;
   pending: number;
   latest: string | null;
   types: string[];
 }
 
-/** Powers the Hall of Cringe. */
+/**
+ * Powers the Hall of Cringe.
+ *
+ * Still grouped by the free-text handle, deliberately — anonymous contributors
+ * are the common case and they only have a handle. `userId` rides along so the
+ * hall can mark which handles belong to a real account. Two accounts typing the
+ * same handle collapse into one row, same as they always have; the first
+ * account seen wins the marker.
+ */
 export async function contributorStats(): Promise<ContributorStat[]> {
   const all = await listSubmissions("all", 1000);
   const byAuthor = new Map<string, ContributorStat>();
@@ -173,11 +192,13 @@ export async function contributorStats(): Promise<ContributorStat[]> {
     if (r.status === "rejected") continue;
     const entry = byAuthor.get(r.author) ?? {
       author: r.author,
+      userId: null,
       approved: 0,
       pending: 0,
       latest: null,
       types: [],
     };
+    entry.userId ??= r.userId;
     if (r.status === "approved") {
       entry.approved += 1;
       if (!entry.types.includes(r.type)) entry.types.push(r.type);

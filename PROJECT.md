@@ -523,6 +523,15 @@ the text inside the actual component it would appear in.**
 The preview shows the **sanitized** value, so typing markup shows it neutered
 immediately — that explains the rule better than help text would.
 
+**Attribution.** `author` is free text and stays that way — most contributors
+have no account and never will. When a session exists, the submission also
+carries `userId`, the only durable link back to a real `User`; the handle
+field is pre-filled with the account name and remains fully editable, so
+posting under another name is allowed and still credited. A blank handle from
+a logged-in submitter falls back to their account name, not `anonymous`. The
+form says which of the two is happening — a logged-in submission is never
+described as anonymous, because it isn't.
+
 **Pending board:** public upvoting. Votes only reorder what a reviewer sees
 first; they never approve anything. That's why one-vote-per-browser is enough
 policing — the worst outcome from cheating is a human reading your joke sooner
@@ -560,6 +569,10 @@ rotation, not a "community corner" at the bottom of the page.
 Ranked by approved count, with titles nobody asked for: Contributor → Committed
 → Repeat Offender → Senior Nuisance → Load-Bearing Gremlin → Structural
 Liability.
+
+Grouping stays keyed on the free-text handle — anonymous contributors only have
+one. Handles with an account behind them get a **linked** badge. `/api/hall`
+projects `userId` down to a `linked` boolean; user ids are never published.
 
 ---
 

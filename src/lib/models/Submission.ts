@@ -7,6 +7,12 @@ const SubmissionSchema = new Schema(
     text: { type: String, required: true, maxlength: 180, trim: true },
     trigger: { type: String, required: true, enum: [...TRIGGERS] },
     author: { type: String, required: true, maxlength: 32, default: "anonymous" },
+    /**
+     * The real account behind the submission, when there was one. `author` stays
+     * free text — someone logged in can still post under any handle they like —
+     * so this is the only durable link back to a User. Null for anonymous.
+     */
+    userId: { type: String, default: null, index: true },
     status: {
       type: String,
       required: true,

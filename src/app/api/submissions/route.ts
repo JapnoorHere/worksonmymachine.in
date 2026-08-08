@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { createSubmission, listSubmissions } from "@/lib/submissions";
-import { validateSubmission } from "@/lib/sanitize";
+import { sanitizeAuthor, validateSubmission } from "@/lib/sanitize";
 import { CONTENT_TYPES, TRIGGERS, type ContentType, type Trigger } from "@/lib/content";
 import { clientKey, rateLimit, sweepBuckets } from "@/lib/ratelimit";
+import { getSessionUserId } from "@/lib/auth";
+import { findUserById } from "@/lib/users";
 
 export const dynamic = "force-dynamic";
 
@@ -52,14 +54,31 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, errors: ["Malformed request."] }, { status: 400 });
   }
 
-  const result = validateSubmission(
-    body as Record<string, unknown>,
-    CONTENT_TYPES,
-    TRIGGERS,
-  );
+  const raw = body as Record<string, unknown>;
+  const result = validateSubmission(raw, CONTENT_TYPES, TRIGGERS);
 
   if (!result.ok) {
     return NextResponse.json({ ok: false, errors: result.errors }, { status: 400 });
+  }
+
+  /* Attribution. The handle stays free text — someone logged in is still
+     allowed to post under any name, including "anonymous" if they type it —
+     but the session, when there is one, is the only durable link back to a
+     real account. A blank handle from a logged-in submitter falls back to
+     their account name rather than "anonymous". */
+  let userId: string | null = null;
+  let author = result.value.author;
+
+  const sessionId = await getSessionUserId().catch(() => null);
+  if (sessionId) {
+    // A cookie can outlive the row it names, so confirm the account is live
+    // before pinning a submission to it.
+    const user = await findUserById(sessionId).catch(() => null);
+    if (user) {
+      userId = user.id;
+      const typedHandle = typeof raw.author === "string" ? raw.author.trim() : "";
+      if (!typedHandle) author = sanitizeAuthor(user.name);
+    }
   }
 
   try {
@@ -67,7 +86,8 @@ export async function POST(req: Request) {
       type: result.value.type as ContentType,
       text: result.value.text,
       trigger: result.value.trigger as Trigger,
-      author: result.value.author,
+      author,
+      userId,
     });
 
     return NextResponse.json({
