@@ -98,7 +98,7 @@ Everything is optional. Copy `.env.example` to `.env.local` if you want any of i
 | Variable         | What it does                                                        |
 | ---------------- | ------------------------------------------------------------------- |
 | `MONGODB_URI`    | Persists submissions, approvals, and credits. Local or Atlas.        |
-| `ADMIN_PASSWORD` | Gates `/admin`. Defaults to `thisisfine` in dev; **required** in prod. |
+| `ADMIN_PASSWORD` | Gates `/admin`. Defaults to `worksonmymachine` in dev; **required** in prod. |
 | `ADMIN_SECRET`   | Signs the admin session cookie. Any long random string.              |
 
 ⚠️ **On production, `ADMIN_PASSWORD` is mandatory.** If it's unset, `/admin`

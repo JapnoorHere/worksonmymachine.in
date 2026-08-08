@@ -722,7 +722,7 @@ All variables optional locally; with none set the site runs end to end.
 | Variable | Purpose | Required in prod |
 | --- | --- | --- |
 | `MONGODB_URI` | Submissions, approvals, credits | Recommended (else memory-only) |
-| `ADMIN_PASSWORD` | Gates `/admin`. Dev default `thisisfine` | **Yes** — unset seals the queue (N3) |
+| `ADMIN_PASSWORD` | Gates `/admin`. Dev default `worksonmymachine` | **Yes** — unset seals the queue (N3) |
 | `ADMIN_SECRET` | Signs the admin session cookie | Recommended |
 | `AUTH_SECRET` | Signs real user session cookies (signup/login) | **Yes** — unset refuses every signup/login (N9) |
 | `NEXT_DIST_DIR` | Overrides build output dir | No (local tooling only) |

@@ -16,7 +16,7 @@ import { cookies } from "next/headers";
 const COOKIE = "tif_admin";
 const MAX_AGE = 60 * 60 * 8; // 8 hours
 
-const DEV_FALLBACK_PASSWORD = "thisisfine";
+const DEV_FALLBACK_PASSWORD = "worksonmymachine";
 
 function expectedPassword(): string | null {
   const configured = process.env.ADMIN_PASSWORD?.trim();
